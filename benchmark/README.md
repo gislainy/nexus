@@ -1,7 +1,6 @@
 # benchmark
 
-Workspace placeholder for the comparative benchmark infrastructure described in
-`brain/ia/modelagem-nexus/implementacao/benchmark-infra.md`.
+Workspace placeholder for the comparative benchmark infrastructure.
 
 This package will host:
 

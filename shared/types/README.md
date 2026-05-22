@@ -2,7 +2,7 @@
 
 Shared package for the Nexus monorepo. Centralizes:
 
-- Zod schemas and inferred TypeScript types for every domain entity defined in `brain/ia/modelagem-nexus/implementacao/03-modelo-de-dados.md`.
+- Zod schemas and inferred TypeScript types for every domain entity in the Nexus data model.
 - The `LLMProvider` abstraction with `Ollama` and `OpenAI` adapters and a `createLLMProvider` factory.
 - The `BenchmarkRecorder` proxy that transparently logs every `complete()` and `embed()` call as an `LLMBenchmarkRecord`.
 - The Prisma schema (`prisma/schema.prisma`) that the migrations and the Prisma client are generated from. All services read and write the same database described here.
