@@ -71,7 +71,7 @@ async function main(): Promise<number> {
 
   const chunkSize = Number(process.env.CHUNK_SIZE ?? 512);
   const overlap = Number(process.env.CHUNK_OVERLAP ?? 64);
-  const dim = Number(process.env.EMBEDDING_DIM ?? 1536);
+  const dim = Number(process.env.EMBEDDING_DIM ?? 768);
   const chunking = new ChunkingService({ chunkSize, overlap });
 
   const embedding: EmbeddingService = values["dry-run"]

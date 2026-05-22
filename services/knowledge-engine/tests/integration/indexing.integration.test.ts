@@ -6,7 +6,7 @@ import type { EmbeddingService } from "../../src/services/embedding.js";
 
 class FakeEmbedding implements EmbeddingService {
   readonly modelName = "fake";
-  readonly dimension = 1536;
+  readonly dimension = 768;
   async embed(_text: string): Promise<number[]> {
     return new Array(this.dimension).fill(0).map((_, i) => (i % 7) / 100);
   }

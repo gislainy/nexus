@@ -12,7 +12,7 @@ describe("OllamaEmbeddingService", () => {
     const svc = new OllamaEmbeddingService({
       baseUrl: "http://localhost:11434",
       model: "nomic-embed-text",
-      dimension: 1536,
+      dimension: 768,
       fetchImpl: fetchMock as unknown as typeof fetch,
     });
     const vec = await svc.embed("hello");
@@ -31,7 +31,7 @@ describe("OllamaEmbeddingService", () => {
     const svc = new OllamaEmbeddingService({
       baseUrl: "http://localhost:11434",
       model: "nomic-embed-text",
-      dimension: 1536,
+      dimension: 768,
       fetchImpl: fetchMock as unknown as typeof fetch,
     });
     await expect(svc.embed("x")).rejects.toThrow(/Ollama/);
@@ -45,7 +45,7 @@ describe("OllamaEmbeddingService", () => {
     const svc = new OllamaEmbeddingService({
       baseUrl: "http://localhost:11434",
       model: "nomic-embed-text",
-      dimension: 1536,
+      dimension: 768,
       fetchImpl: fetchMock as unknown as typeof fetch,
     });
     await expect(svc.embed("x")).rejects.toThrow(/500/);
