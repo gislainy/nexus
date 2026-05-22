@@ -35,9 +35,14 @@ const retrievalPlugin: FastifyPluginAsync<RetrievalPluginOptions> = async (
     sparse: 0,
     hybrid: 0,
   };
-  const relevanceThreshold = process.env.RELEVANCE_THRESHOLD
+  const override = process.env.RELEVANCE_THRESHOLD
     ? Number(process.env.RELEVANCE_THRESHOLD)
-    : defaultThresholdByStrategy[strategy];
+    : undefined;
+  const thresholdByStrategy: Record<RetrievalStrategy, number> = {
+    dense: override ?? defaultThresholdByStrategy.dense,
+    sparse: override ?? defaultThresholdByStrategy.sparse,
+    hybrid: override ?? defaultThresholdByStrategy.hybrid,
+  };
 
   const embedding: EmbeddingService =
     opts.embedding ??
@@ -52,7 +57,7 @@ const retrievalPlugin: FastifyPluginAsync<RetrievalPluginOptions> = async (
   const hybrid = new HybridRetrievalService(dense, sparse, { rrfK });
   const retrieval = new RetrievalService(fastify.prisma, dense, sparse, hybrid, {
     strategy,
-    relevanceThreshold,
+    thresholdByStrategy,
   });
 
   fastify.decorate("retrieval", retrieval);

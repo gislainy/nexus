@@ -35,7 +35,7 @@ export interface RetrievalResponseOut {
 
 export interface RetrievalServiceOptions {
   strategy: RetrievalStrategy;
-  relevanceThreshold: number;
+  thresholdByStrategy: Record<RetrievalStrategy, number>;
 }
 
 export class RetrievalService {
@@ -49,9 +49,8 @@ export class RetrievalService {
 
   async retrieve(request: RetrievalRequestInput): Promise<RetrievalResponseOut> {
     const candidates = await this.runStrategy(request);
-    const filtered = candidates.filter(
-      (c) => c.score >= this.options.relevanceThreshold,
-    );
+    const threshold = this.options.thresholdByStrategy[this.options.strategy];
+    const filtered = candidates.filter((c) => c.score >= threshold);
     if (filtered.length === 0) {
       return { hasEvidence: false, passages: [] };
     }

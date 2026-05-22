@@ -20,14 +20,50 @@ describe("HybridRetrievalService.fuse (RRF)", () => {
     expect(b.score).toBeCloseTo(1 / 62 + 1 / 61, 10);
   });
 
-  it("documents present in only one ranking receive partial contribution", () => {
+  it("dense-only chunk gets dense contribution; sparse-only chunk is discarded", () => {
     const dense = [{ chunkId: "X", score: 0.9 }];
     const sparse = [{ chunkId: "Y", score: 5.0 }];
     const out = HybridRetrievalService.fuse(dense, sparse, 10, 60);
-    const x = out.find((c) => c.chunkId === "X")!;
-    const y = out.find((c) => c.chunkId === "Y")!;
-    expect(x.score).toBeCloseTo(1 / 61, 10);
-    expect(y.score).toBeCloseTo(1 / 61, 10);
+    expect(out.map((c) => c.chunkId)).toEqual(["X"]);
+    expect(out[0]!.score).toBeCloseTo(1 / 61, 10);
+  });
+
+  it("returns [] when dense is empty (no semantic gate ⇒ nothing fuses)", () => {
+    const sparse = [
+      { chunkId: "S1", score: 3 },
+      { chunkId: "S2", score: 2 },
+    ];
+    expect(HybridRetrievalService.fuse([], sparse, 3, 60)).toEqual([]);
+  });
+
+  it("excludes chunks present only in sparse and includes dense-only chunks", () => {
+    const dense = [
+      { chunkId: "A", score: 0.82 },
+      { chunkId: "B", score: 0.71 },
+      { chunkId: "C", score: 0.55 },
+    ];
+    const sparse = [
+      { chunkId: "B", score: 3.2 },
+      { chunkId: "D", score: 2.8 },
+      { chunkId: "A", score: 1.1 },
+    ];
+    const out = HybridRetrievalService.fuse(dense, sparse, 3, 60);
+    expect(out.map((c) => c.chunkId)).toEqual(["B", "A", "C"]);
+    expect(out.find((c) => c.chunkId === "D")).toBeUndefined();
+    expect(out[0]!.score).toBeCloseTo(1 / 62 + 1 / 61, 10);
+    expect(out[1]!.score).toBeCloseTo(1 / 61 + 1 / 63, 10);
+    expect(out[2]!.score).toBeCloseTo(1 / 63, 10);
+  });
+
+  it("sums RRF contributions when chunk appears in both lists", () => {
+    const out = HybridRetrievalService.fuse(
+      [{ chunkId: "A", score: 0.9 }],
+      [{ chunkId: "A", score: 1.0 }],
+      1,
+      60,
+    );
+    expect(out).toHaveLength(1);
+    expect(out[0]!.score).toBeCloseTo(2 / 61, 10);
   });
 
   it("respects topK truncation", () => {
