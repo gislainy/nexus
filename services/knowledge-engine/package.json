@@ -25,6 +25,8 @@
     "fastify": "^5.2.0",
     "fastify-plugin": "^5.1.0",
     "js-tiktoken": "^1.0.21",
+    "wink-bm25-text-search": "^3.1.2",
+    "wink-nlp-utils": "^2.1.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
