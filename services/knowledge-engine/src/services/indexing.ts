@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import type { ChunkingService } from "./chunking.js";
 import type { EmbeddingService } from "./embedding.js";
 
@@ -38,33 +38,39 @@ export class IndexingService {
       return { paperId: existing.id, chunksCreated: existing.chunks.length };
     }
 
-    const paper = await this.prisma.paper.create({
-      data: {
-        title: input.title,
-        authors: input.authors,
-        year: input.year,
-        venue: input.venue,
-        doi: input.doi,
-        submodulePath: input.submodulePath,
-        pdfHash: input.pdfHash,
-        accessType: input.accessType,
-        layer: input.layer,
-      },
-    });
-
     const chunks = this.chunking.chunk(input.text);
-    let created = 0;
-    for (const chunk of chunks) {
-      const vector = await this.embedding.embed(chunk.text);
-      const id = randomUUID();
-      const vectorLiteral = `[${vector.join(",")}]`;
-      await this.prisma.$executeRaw`
-        INSERT INTO "KnowledgeChunk" (id, "paperId", tags, text, embedding, "pageRef", layer, "accessType", status, "createdAt")
-        VALUES (${id}, ${paper.id}, ${input.tags}::text[], ${chunk.text}, ${vectorLiteral}::public.vector, ${chunk.pageRef ?? null}, ${input.layer}, ${input.accessType}, 'active', NOW())
-      `;
-      created++;
-    }
+    const embeddings = await Promise.all(
+      chunks.map((c) => this.embedding.embed(c.text)),
+    );
 
-    return { paperId: paper.id, chunksCreated: created };
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const paper = await tx.paper.create({
+        data: {
+          title: input.title,
+          authors: input.authors,
+          year: input.year,
+          venue: input.venue,
+          doi: input.doi,
+          submodulePath: input.submodulePath,
+          pdfHash: input.pdfHash,
+          accessType: input.accessType,
+          layer: input.layer,
+        },
+      });
+
+      let created = 0;
+      for (const [i, chunk] of chunks.entries()) {
+        const vector = embeddings[i]!;
+        const id = randomUUID();
+        const vectorLiteral = `[${vector.join(",")}]`;
+        await tx.$executeRaw`
+          INSERT INTO "KnowledgeChunk" (id, "paperId", tags, text, embedding, "pageRef", layer, "accessType", status, "createdAt")
+          VALUES (${id}, ${paper.id}, ${input.tags}::text[], ${chunk.text}, ${vectorLiteral}::public.vector, ${chunk.pageRef ?? null}, ${input.layer}, ${input.accessType}, 'active', NOW())
+        `;
+        created++;
+      }
+
+      return { paperId: paper.id, chunksCreated: created };
+    });
   }
 }
