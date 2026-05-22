@@ -19,6 +19,7 @@ describe("DomainConfig schema", () => {
       domainName: "blockchain-in-health",
       domainVersion: "1.0.0",
       description: "test",
+      technology: "blockchain",
       tagSet: ["a"],
       active: true,
       createdAt: new Date(),

@@ -21,6 +21,7 @@ model DomainConfig {
   domainName    String
   domainVersion String
   description   String
+  technology    String
   tagSet        String[]
   active        Boolean  @default(false)
   createdAt     DateTime @default(now())

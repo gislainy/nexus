@@ -45,6 +45,7 @@ export const DomainConfig = z.object({
   domainName: z.string().min(1),
   domainVersion: z.string().min(1),
   description: z.string(),
+  technology: z.string().min(1),
   tagSet: z.array(z.string()).min(1),
   active: z.boolean().default(false),
   createdAt: z.date(),
