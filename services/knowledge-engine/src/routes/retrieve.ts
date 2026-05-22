@@ -13,6 +13,12 @@ export const retrieveRoutes: FastifyPluginAsync = async (fastify) => {
     if (!parsed.success) {
       return reply.status(400).send({ error: "invalid_request", issues: parsed.error.issues });
     }
-    return reply.status(501).send({ error: "not_implemented" });
+    try {
+      const response = await fastify.retrieval.retrieve(parsed.data);
+      return reply.send(response);
+    } catch (err) {
+      fastify.log.error({ err }, "retrieval failed");
+      return reply.status(500).send({ error: "retrieval_failed" });
+    }
   });
 };
