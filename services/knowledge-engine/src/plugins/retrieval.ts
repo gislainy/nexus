@@ -28,8 +28,16 @@ const retrievalPlugin: FastifyPluginAsync<RetrievalPluginOptions> = async (
   opts,
 ) => {
   const strategy = (process.env.RETRIEVAL_STRATEGY ?? "hybrid") as RetrievalStrategy;
-  const relevanceThreshold = Number(process.env.RELEVANCE_THRESHOLD ?? "0.5");
   const rrfK = Number(process.env.RRF_K ?? "60");
+  const minCosine = Number(process.env.DENSE_MIN_COSINE ?? "0.5");
+  const defaultThresholdByStrategy: Record<RetrievalStrategy, number> = {
+    dense: minCosine,
+    sparse: 0,
+    hybrid: 0,
+  };
+  const relevanceThreshold = process.env.RELEVANCE_THRESHOLD
+    ? Number(process.env.RELEVANCE_THRESHOLD)
+    : defaultThresholdByStrategy[strategy];
 
   const embedding: EmbeddingService =
     opts.embedding ??
@@ -39,7 +47,7 @@ const retrievalPlugin: FastifyPluginAsync<RetrievalPluginOptions> = async (
       dimension: Number(process.env.EMBEDDING_DIM ?? "768"),
     });
 
-  const dense = new DenseRetrievalService(fastify.prisma, embedding);
+  const dense = new DenseRetrievalService(fastify.prisma, embedding, { minCosine });
   const sparse = new SparseRetrievalService(fastify.prisma);
   const hybrid = new HybridRetrievalService(dense, sparse, { rrfK });
   const retrieval = new RetrievalService(fastify.prisma, dense, sparse, hybrid, {

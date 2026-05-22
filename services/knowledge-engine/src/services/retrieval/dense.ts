@@ -6,10 +6,15 @@ export interface RetrievalCandidate {
   score: number;
 }
 
+export interface DenseRetrievalOptions {
+  minCosine: number;
+}
+
 export class DenseRetrievalService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly embedding: EmbeddingService,
+    private readonly options: DenseRetrievalOptions = { minCosine: 0 },
   ) {}
 
   async retrieve(
@@ -19,6 +24,7 @@ export class DenseRetrievalService {
   ): Promise<RetrievalCandidate[]> {
     const vector = await this.embedding.embed(queryText);
     const literal = `[${vector.join(",")}]`;
+    const minCosine = this.options.minCosine;
     const rows = await this.prisma.$queryRaw<
       Array<{ id: string; score: number }>
     >`
@@ -26,6 +32,7 @@ export class DenseRetrievalService {
       FROM "KnowledgeChunk"
       WHERE status = 'active'
         AND (${tag ?? null}::text IS NULL OR ${tag ?? null}::text = ANY(tags))
+        AND 1 - (embedding OPERATOR(public.<=>) ${literal}::public.vector) >= ${minCosine}
       ORDER BY embedding OPERATOR(public.<=>) ${literal}::public.vector
       LIMIT ${topK}
     `;

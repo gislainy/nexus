@@ -33,6 +33,8 @@ nexus/
 │   ├── docker-compose.yml      # PostgreSQL + pgvector + MinIO
 │   ├── docker-compose.test.yml # Lightweight stack for CI/integration tests
 │   └── python-bridge/          # port 8009 — Python interop (spaCy, scikit-learn)
+├── scripts/
+│   └── manual-tests/           # Human-only scripts (not run by agents or CI)
 ├── docs/
 │   └── architecture.md
 ├── .github/
@@ -176,6 +178,34 @@ pnpm --filter knowledge-engine test
 # 6. Run all tests
 pnpm test
 ```
+
+---
+
+## Manual Testing (Human-Only)
+
+Scripts in `scripts/manual-tests/` are run by the researcher, not by agents. They are not part of the CI pipeline.
+
+### Seed the knowledge base with real papers
+
+**Prerequisites:**
+- `pdftotext` installed (`brew install poppler` on macOS, `sudo apt-get install poppler-utils` on Ubuntu)
+- Infrastructure running: `docker compose -f infra/docker-compose.yml up -d`
+- Ollama running: `ollama serve`
+- Knowledge engine running: `pnpm --filter knowledge-engine dev`
+
+**Run from the `nexus/` root:**
+
+```bash
+bash scripts/manual-tests/seed-papers.sh <path-to-nexus-knowledge-base>
+```
+
+Example (when `nexus-knowledge-base/` sits next to `nexus/`):
+
+```bash
+bash scripts/manual-tests/seed-papers.sh ../nexus-knowledge-base
+```
+
+The script indexes two core papers — Wüst & Gervais (2018) and Türkeli (2025) — extracts text from their PDFs, computes SHA-256 hashes, and confirms insertion in the database. Re-running the script is safe: the indexing pipeline is idempotent by `pdfHash`.
 
 ---
 
