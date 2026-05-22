@@ -1,0 +1,60 @@
+name: CI — Knowledge Engine (C4)
+
+on:
+  pull_request:
+    paths:
+      - 'services/knowledge-engine/**'
+      - 'shared/**'
+      - '.github/workflows/ci-knowledge-engine.yml'
+
+jobs:
+  test:
+    name: Test Knowledge Engine
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: nexus_test
+          POSTGRES_DB: nexus_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm --filter knowledge-engine tsc --noEmit
+
+      - name: Lint
+        run: pnpm --filter knowledge-engine lint
+
+      - name: Run migrations
+        run: pnpm --filter knowledge-engine db:migrate
+        env:
+          DATABASE_URL: postgresql://nexus:nexus_test@localhost:5432/nexus_test
+
+      - name: Unit tests
+        run: pnpm --filter knowledge-engine test:unit
+
+      - name: Integration tests
+        run: pnpm --filter knowledge-engine test:integration
+        env:
+          DATABASE_URL: postgresql://nexus:nexus_test@localhost:5432/nexus_test

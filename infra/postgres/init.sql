@@ -1,0 +1,2 @@
+-- Intentionally empty. Postgres extensions are declared in the Prisma schema
+-- (datasource db.extensions) and created by Prisma migrations.
