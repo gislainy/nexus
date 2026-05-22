@@ -1,0 +1,10 @@
+{
+  "name": "@nexus/benchmark",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"(no benchmark tests yet)\" && exit 0",
+    "lint": "echo \"(lint placeholder)\" && exit 0",
+    "build": "echo \"(no build step)\" && exit 0"
+  }
+}
