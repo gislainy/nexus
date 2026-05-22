@@ -5,6 +5,7 @@ import type { EmbeddingService } from "./services/embedding.js";
 import { healthRoutes } from "./routes/health.js";
 import { retrieveRoutes } from "./routes/retrieve.js";
 import { chunksRoutes } from "./routes/chunks.js";
+import { benchmarkRoutes } from "./routes/benchmark.js";
 
 export async function buildServer(
   opts: { withPrisma?: boolean; embedding?: EmbeddingService } = {},
@@ -19,6 +20,7 @@ export async function buildServer(
   await fastify.register(healthRoutes);
   await fastify.register(retrieveRoutes);
   await fastify.register(chunksRoutes);
+  await fastify.register(benchmarkRoutes);
 
   return fastify;
 }
