@@ -1,0 +1,13 @@
+{
+  "extends": ["@commitlint/config-conventional"],
+  "rules": {
+    "scope-enum": [
+      2,
+      "always",
+      ["c0", "c1", "c3", "c4", "c5", "infra", "shared", "benchmark", "docs", "ci"]
+    ],
+    "scope-empty": [1, "never"],
+    "subject-case": [2, "always", "lower-case"],
+    "header-max-length": [2, "always", 100]
+  }
+}
