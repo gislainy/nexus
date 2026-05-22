@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { SparseRetrievalService } from "../../src/services/retrieval/sparse.js";
+import { SparseRetrievalService } from "../../../src/services/retrieval/sparse.js";
 
 describe("SparseRetrievalService (unit)", () => {
   const rows = [

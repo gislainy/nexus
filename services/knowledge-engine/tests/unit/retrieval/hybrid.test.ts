@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { HybridRetrievalService } from "../../src/services/retrieval/hybrid.js";
+import { HybridRetrievalService } from "../../../src/services/retrieval/hybrid.js";
 
 describe("HybridRetrievalService.fuse (RRF)", () => {
   it("computes correct RRF scores for k=60 with known rankings", () => {
