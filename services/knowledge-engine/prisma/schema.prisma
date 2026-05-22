@@ -1,0 +1,103 @@
+// Prisma schema for the Nexus Knowledge Engine (C4).
+// Isolated schema — uses the same PostgreSQL instance as other services
+// but owns its own tables. No cross-service foreign keys.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector", schema: "public")]
+}
+
+model Paper {
+  id            String   @id @default(uuid())
+  title         String
+  authors       String[]
+  year          Int
+  venue         String
+  doi           String?
+  submodulePath String
+  pdfHash       String
+  accessType    String
+  layer         String
+  indexedAt     DateTime @default(now())
+  chunks        KnowledgeChunk[]
+}
+
+model KnowledgeChunk {
+  id         String                       @id @default(uuid())
+  paperId    String
+  paper      Paper                        @relation(fields: [paperId], references: [id])
+  tags       String[]
+  text       String
+  claim      String?
+  embedding  Unsupported("public.vector(1536)")?
+  pageRef    String?
+  layer      String
+  accessType String
+  status     String                       @default("active")
+  createdAt  DateTime                     @default(now())
+}
+
+model KnowledgeBaseSnapshot {
+  id            String   @id @default(uuid())
+  version       String   @unique
+  description   String
+  chunkIds      String[]
+  coreCount     Int
+  expandedCount Int
+  createdAt     DateTime @default(now())
+}
+
+model IRGroundTruth {
+  id          String                  @id @default(uuid())
+  version     String                  @unique
+  description String
+  pairs       IRGroundTruthPair[]
+  experiments IRBenchmarkExperiment[]
+}
+
+model IRGroundTruthPair {
+  id               String        @id @default(uuid())
+  groundTruthId    String
+  groundTruth      IRGroundTruth @relation(fields: [groundTruthId], references: [id])
+  queryText        String
+  tag              String?
+  relevantChunkIds String[]
+  notes            String?
+}
+
+model IRBenchmarkExperiment {
+  id                String              @id @default(uuid())
+  name              String
+  description       String
+  experimentType    String
+  candidates        String[]
+  groundTruthId     String
+  groundTruth       IRGroundTruth       @relation(fields: [groundTruthId], references: [id])
+  results           IRBenchmarkResult[]
+  winnerCandidate   String?
+  decisionRationale String?
+  status            String              @default("PLANNED")
+  createdAt         DateTime            @default(now())
+  completedAt       DateTime?
+}
+
+model IRBenchmarkResult {
+  id                String                @id @default(uuid())
+  experimentId      String
+  experiment        IRBenchmarkExperiment @relation(fields: [experimentId], references: [id])
+  candidateId       String
+  rrfK              Int?
+  recallAt10        Float
+  mrr               Float
+  ndcgAt10          Float
+  indexingLatencyMs Int?
+  queryLatencyMs    Int?
+  byTag             Json
+  createdAt         DateTime              @default(now())
+}
