@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { PrismaClient } from "@prisma/client";
-import { ChunkingService } from "../../src/services/chunking.js";
-import { IndexingService } from "../../src/services/indexing.js";
-import { DenseRetrievalService } from "../../src/services/retrieval/dense.js";
-import { SparseRetrievalService } from "../../src/services/retrieval/sparse.js";
-import { HybridRetrievalService } from "../../src/services/retrieval/hybrid.js";
-import { RetrievalService } from "../../src/services/retrieval/index.js";
-import { BenchmarkRunner } from "../../src/benchmark/runner.js";
-import type { EmbeddingService } from "../../src/services/embedding.js";
+import { ChunkingService } from "../../../src/services/chunking.js";
+import { IndexingService } from "../../../src/services/indexing.js";
+import { DenseRetrievalService } from "../../../src/services/retrieval/dense.js";
+import { SparseRetrievalService } from "../../../src/services/retrieval/sparse.js";
+import { HybridRetrievalService } from "../../../src/services/retrieval/hybrid.js";
+import { RetrievalService } from "../../../src/services/retrieval/index.js";
+import { BenchmarkRunner } from "../../../src/benchmark/runner.js";
+import type { EmbeddingService } from "../../../src/services/embedding.js";
 
 const VOCAB = [
   "blockchain",
