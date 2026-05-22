@@ -35,7 +35,7 @@ model KnowledgeChunk {
   tags       String[]
   text       String
   claim      String?
-  embedding  Unsupported("public.vector(1536)")?
+  embedding  Unsupported("public.vector(768)")?
   pageRef    String?
   layer      String
   accessType String
