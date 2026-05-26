@@ -1,26 +1,35 @@
 import Fastify from "fastify";
 import prismaPlugin from "./plugins/prisma.js";
 import retrievalPlugin from "./plugins/retrieval.js";
+import generationPlugin from "./plugins/generation.js";
 import type { EmbeddingService } from "./services/embedding.js";
+import type { GenerationService } from "./services/generation.js";
 import { healthRoutes } from "./routes/health.js";
 import { retrieveRoutes } from "./routes/retrieve.js";
 import { chunksRoutes } from "./routes/chunks.js";
 import { benchmarkRoutes } from "./routes/benchmark.js";
+import { answerRoutes } from "./routes/answer.js";
 
 export async function buildServer(
-  opts: { withPrisma?: boolean; embedding?: EmbeddingService } = {},
+  opts: {
+    withPrisma?: boolean;
+    embedding?: EmbeddingService;
+    generation?: GenerationService;
+  } = {},
 ) {
   const fastify = Fastify({ logger: true });
 
   if (opts.withPrisma !== false) {
     await fastify.register(prismaPlugin);
     await fastify.register(retrievalPlugin, { embedding: opts.embedding });
+    await fastify.register(generationPlugin, { generation: opts.generation });
   }
 
   await fastify.register(healthRoutes);
   await fastify.register(retrieveRoutes);
   await fastify.register(chunksRoutes);
   await fastify.register(benchmarkRoutes);
+  await fastify.register(answerRoutes);
 
   return fastify;
 }
