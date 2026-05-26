@@ -16,6 +16,9 @@
     "db:generate": "prisma generate",
     "prisma:generate": "prisma generate",
     "index-paper": "tsx --env-file=.env scripts/index-paper.ts",
+    "extract-pdf": "tsx --env-file=.env scripts/extract-pdf.ts",
+    "batch-index": "tsx --env-file=.env scripts/batch-index.ts",
+    "create-snapshot": "tsx --env-file=.env scripts/create-snapshot.ts",
     "load-ground-truth": "tsx --env-file=.env scripts/load-ground-truth.ts",
     "run-benchmark": "tsx --env-file=.env scripts/run-benchmark.ts"
   },
@@ -27,12 +30,14 @@
     "fastify": "^5.2.0",
     "fastify-plugin": "^5.1.0",
     "js-tiktoken": "^1.0.21",
+    "pdf-parse": "^2.4.5",
     "wink-bm25-text-search": "^3.1.2",
     "wink-nlp-utils": "^2.1.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
+    "@types/pdf-parse": "^1.1.5",
     "prisma": "^6.1.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
