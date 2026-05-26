@@ -15,7 +15,9 @@
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "prisma:generate": "prisma generate",
-    "index-paper": "tsx --env-file=.env scripts/index-paper.ts"
+    "index-paper": "tsx --env-file=.env scripts/index-paper.ts",
+    "load-ground-truth": "tsx --env-file=.env scripts/load-ground-truth.ts",
+    "run-benchmark": "tsx --env-file=.env scripts/run-benchmark.ts"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
