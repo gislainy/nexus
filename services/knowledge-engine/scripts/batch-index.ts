@@ -29,6 +29,23 @@ export interface Manifest {
   papers: ManifestEntry[];
 }
 
+export function parseManifest(raw: string): Manifest {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`invalid JSON: ${(err as Error).message}`);
+  }
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    !Array.isArray((parsed as Manifest).papers)
+  ) {
+    throw new Error("manifest must have a 'papers' array");
+  }
+  return parsed as Manifest;
+}
+
 export interface BatchIndexDeps {
   indexing: Pick<IndexingService, "indexPaper">;
   baseDir: string;
@@ -109,11 +126,7 @@ async function main(): Promise<number> {
 
   let manifest: Manifest;
   try {
-    const raw = readFileSync(manifestPath, "utf8");
-    manifest = JSON.parse(raw) as Manifest;
-    if (!manifest || !Array.isArray(manifest.papers)) {
-      throw new Error("manifest must have a 'papers' array");
-    }
+    manifest = parseManifest(readFileSync(manifestPath, "utf8"));
   } catch (err) {
     console.error(`Invalid manifest: ${(err as Error).message}`);
     return 1;

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  parseManifest,
   runBatchIndex,
   type Manifest,
 } from "../../scripts/batch-index.js";
@@ -19,6 +20,21 @@ function makeEntry(overrides: Partial<Manifest["papers"][0]> = {}) {
     ...overrides,
   };
 }
+
+describe("parseManifest", () => {
+  it("throws on invalid JSON", () => {
+    expect(() => parseManifest("not json {")).toThrow(/invalid JSON/);
+  });
+
+  it("throws when papers array missing", () => {
+    expect(() => parseManifest('{"foo":1}')).toThrow(/papers/);
+  });
+
+  it("returns manifest on valid input", () => {
+    const m = parseManifest('{"papers":[]}');
+    expect(m.papers).toEqual([]);
+  });
+});
 
 describe("runBatchIndex", () => {
   it("indexes all papers when textFiles exist", async () => {
