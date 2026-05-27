@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import { ChunkingService } from "../src/services/chunking.js";
 import {
   OllamaEmbeddingService,
+  TransformersEmbeddingService,
   type EmbeddingService,
 } from "../src/services/embedding.js";
 import { IndexingService } from "../src/services/indexing.js";
@@ -138,13 +139,20 @@ async function main(): Promise<number> {
   const dim = Number(process.env.EMBEDDING_DIM ?? 768);
   const chunking = new ChunkingService({ chunkSize, overlap });
 
+  const provider = process.env.EMBEDDING_PROVIDER ?? "transformers";
   const embedding: EmbeddingService = values["dry-run"]
     ? new DryRunEmbedding(dim)
-    : new OllamaEmbeddingService({
-        baseUrl: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434",
-        model: process.env.EMBEDDING_MODEL ?? "nomic-embed-text",
-        dimension: dim,
-      });
+    : provider === "ollama"
+      ? new OllamaEmbeddingService({
+          baseUrl: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434",
+          model: process.env.EMBEDDING_MODEL ?? "nomic-embed-text",
+          dimension: dim,
+        })
+      : new TransformersEmbeddingService({
+          model: process.env.EMBEDDING_MODEL ?? "Alibaba-NLP/gte-large-en-v1.5",
+          dimension: dim,
+          quantized: process.env.EMBEDDING_QUANTIZED === "true",
+        });
 
   const prisma = new PrismaClient();
   const indexing = new IndexingService(prisma, chunking, embedding);
