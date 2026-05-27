@@ -57,9 +57,9 @@ const retrievalPlugin: FastifyPluginAsync<RetrievalPluginOptions> = async (
           dimension: Number(process.env.EMBEDDING_DIM ?? "768"),
         })
       : new TransformersEmbeddingService({
-          model: process.env.EMBEDDING_MODEL ?? "Alibaba-NLP/gte-large-en-v1.5",
+          model: process.env.EMBEDDING_MODEL ?? "Xenova/bge-large-en-v1.5",
           dimension: Number(process.env.EMBEDDING_DIM ?? "1024"),
-          quantized: process.env.EMBEDDING_QUANTIZED === "true",
+          quantized: process.env.EMBEDDING_QUANTIZED !== "false",
         }));
 
   const dense = new DenseRetrievalService(fastify.prisma, embedding, { minCosine });

@@ -149,9 +149,9 @@ async function main(): Promise<number> {
           dimension: dim,
         })
       : new TransformersEmbeddingService({
-          model: process.env.EMBEDDING_MODEL ?? "Alibaba-NLP/gte-large-en-v1.5",
+          model: process.env.EMBEDDING_MODEL ?? "Xenova/bge-large-en-v1.5",
           dimension: dim,
-          quantized: process.env.EMBEDDING_QUANTIZED === "true",
+          quantized: process.env.EMBEDDING_QUANTIZED !== "false",
         });
 
   const prisma = new PrismaClient();
