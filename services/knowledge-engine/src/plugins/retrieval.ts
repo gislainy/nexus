@@ -4,6 +4,7 @@ import { DenseRetrievalService } from "../services/retrieval/dense.js";
 import { SparseRetrievalService } from "../services/retrieval/sparse.js";
 import { HybridRetrievalService } from "../services/retrieval/hybrid.js";
 import {
+  HttpRerankingService,
   RetrievalService,
   type RetrievalStrategy,
 } from "../services/retrieval/index.js";
@@ -55,9 +56,18 @@ const retrievalPlugin: FastifyPluginAsync<RetrievalPluginOptions> = async (
   const dense = new DenseRetrievalService(fastify.prisma, embedding, { minCosine });
   const sparse = new SparseRetrievalService(fastify.prisma);
   const hybrid = new HybridRetrievalService(dense, sparse, { rrfK });
+
+  const rerankUrl = process.env.RERANKER_URL?.trim() || undefined;
+  const reranking = rerankUrl ? new HttpRerankingService(rerankUrl) : undefined;
+  const rerankTopK = process.env.RERANKER_TOP_K
+    ? Number(process.env.RERANKER_TOP_K)
+    : undefined;
+
   const retrieval = new RetrievalService(fastify.prisma, dense, sparse, hybrid, {
     strategy,
     thresholdByStrategy,
+    reranking,
+    rerankTopK,
   });
 
   fastify.decorate("retrieval", retrieval);
