@@ -20,23 +20,35 @@ describe("HybridRetrievalService.fuse (RRF)", () => {
     expect(b.score).toBeCloseTo(1 / 62 + 1 / 61, 10);
   });
 
-  it("dense-only chunk gets dense contribution; sparse-only chunk is discarded", () => {
+  it("sparse-only candidate receives its sparse contribution", () => {
     const dense = [{ chunkId: "X", score: 0.9 }];
     const sparse = [{ chunkId: "Y", score: 5.0 }];
     const out = HybridRetrievalService.fuse(dense, sparse, 10, 60);
-    expect(out.map((c) => c.chunkId)).toEqual(["X"]);
-    expect(out[0]!.score).toBeCloseTo(1 / 61, 10);
+    const x = out.find((c) => c.chunkId === "X")!;
+    expect(x.score).toBeCloseTo(1 / 61, 10);
+    const y = out.find((c) => c.chunkId === "Y")!;
+    expect(y).toBeDefined();
+    expect(y.score).toBeCloseTo(1 / 61, 10);
   });
 
-  it("returns [] when dense is empty (no semantic gate ⇒ nothing fuses)", () => {
+  it("returns sparse-only candidates when dense is empty", () => {
     const sparse = [
       { chunkId: "S1", score: 3 },
       { chunkId: "S2", score: 2 },
     ];
-    expect(HybridRetrievalService.fuse([], sparse, 3, 60)).toEqual([]);
+    const out = HybridRetrievalService.fuse([], sparse, 3, 60);
+    expect(out).toHaveLength(2);
+    const s1 = out.find((c) => c.chunkId === "S1")!;
+    const s2 = out.find((c) => c.chunkId === "S2")!;
+    expect(s1.score).toBeCloseTo(1 / 61, 10);
+    expect(s2.score).toBeCloseTo(1 / 62, 10);
   });
 
-  it("excludes chunks present only in sparse and includes dense-only chunks", () => {
+  it("returns [] only when both dense and sparse are empty", () => {
+    expect(HybridRetrievalService.fuse([], [], 5, 60)).toEqual([]);
+  });
+
+  it("includes sparse-only candidates alongside dense candidates", () => {
     const dense = [
       { chunkId: "A", score: 0.82 },
       { chunkId: "B", score: 0.71 },
@@ -47,12 +59,12 @@ describe("HybridRetrievalService.fuse (RRF)", () => {
       { chunkId: "D", score: 2.8 },
       { chunkId: "A", score: 1.1 },
     ];
-    const out = HybridRetrievalService.fuse(dense, sparse, 3, 60);
-    expect(out.map((c) => c.chunkId)).toEqual(["B", "A", "C"]);
-    expect(out.find((c) => c.chunkId === "D")).toBeUndefined();
-    expect(out[0]!.score).toBeCloseTo(1 / 62 + 1 / 61, 10);
-    expect(out[1]!.score).toBeCloseTo(1 / 61 + 1 / 63, 10);
-    expect(out[2]!.score).toBeCloseTo(1 / 63, 10);
+    const out = HybridRetrievalService.fuse(dense, sparse, 4, 60);
+    const d = out.find((c) => c.chunkId === "D");
+    expect(d).toBeDefined();
+    expect(d!.score).toBeCloseTo(1 / 62, 10);
+    expect(out[0]!.chunkId).toBe("B");
+    expect(out[1]!.chunkId).toBe("A");
   });
 
   it("sums RRF contributions when chunk appears in both lists", () => {
