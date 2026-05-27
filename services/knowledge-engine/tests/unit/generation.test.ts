@@ -130,6 +130,79 @@ describe("OllamaGenerationService", () => {
     expect(res.answer).toBe("No evidence.");
   });
 
+  it("num_ctx is passed in the Ollama payload (default 8192)", async () => {
+    let captured: { options?: { num_ctx?: number } } | undefined;
+    const fetchImpl = fakeFetch((_input, init) => {
+      const body = (init as { body?: string } | undefined)?.body ?? "{}";
+      captured = JSON.parse(body) as { options?: { num_ctx?: number } };
+      return new Response(
+        JSON.stringify({
+          message: { content: JSON.stringify({ answer: "x", cited_spans: [] }) },
+        }),
+        { status: 200 },
+      );
+    });
+    const svc = new OllamaGenerationService({
+      baseUrl: "http://fake",
+      model: "test",
+      maxTokens: 256,
+      fetchImpl,
+    });
+    await svc.generate(makeRequest());
+    expect(captured?.options?.num_ctx).toBe(8192);
+  });
+
+  it("custom numCtx overrides default", async () => {
+    let captured: { options?: { num_ctx?: number } } | undefined;
+    const fetchImpl = fakeFetch((_input, init) => {
+      const body = (init as { body?: string } | undefined)?.body ?? "{}";
+      captured = JSON.parse(body) as { options?: { num_ctx?: number } };
+      return new Response(
+        JSON.stringify({
+          message: { content: JSON.stringify({ answer: "x", cited_spans: [] }) },
+        }),
+        { status: 200 },
+      );
+    });
+    const svc = new OllamaGenerationService({
+      baseUrl: "http://fake",
+      model: "test",
+      maxTokens: 256,
+      numCtx: 4096,
+      fetchImpl,
+    });
+    await svc.generate(makeRequest());
+    expect(captured?.options?.num_ctx).toBe(4096);
+  });
+
+  it("user prompt contains query at start and end", async () => {
+    let userContent = "";
+    const fetchImpl = fakeFetch((_input, init) => {
+      const body = (init as { body?: string } | undefined)?.body ?? "{}";
+      const parsed = JSON.parse(body) as {
+        messages: { role: string; content: string }[];
+      };
+      userContent =
+        parsed.messages.find((m) => m.role === "user")?.content ?? "";
+      return new Response(
+        JSON.stringify({
+          message: { content: JSON.stringify({ answer: "x", cited_spans: [] }) },
+        }),
+        { status: 200 },
+      );
+    });
+    const svc = new OllamaGenerationService({
+      baseUrl: "http://fake",
+      model: "test",
+      maxTokens: 256,
+      fetchImpl,
+    });
+    const req = makeRequest();
+    await svc.generate(req);
+    expect(userContent).toContain(`QUERY: ${req.queryText}`);
+    expect(userContent).toContain(`QUERY (restated): ${req.queryText}`);
+  });
+
   it("latencyMs is a non-negative number", async () => {
     const fetchImpl = fakeFetch(() =>
       new Response(

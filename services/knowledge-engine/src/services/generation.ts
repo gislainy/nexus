@@ -35,6 +35,7 @@ export interface OllamaGenerationOptions {
   baseUrl: string;
   model: string;
   maxTokens: number;
+  numCtx?: number;
   fetchImpl?: typeof fetch;
 }
 
@@ -82,6 +83,7 @@ function buildUserPrompt(req: GenerationRequest): string {
     lines.push("");
   }
   lines.push("Now answer the query following the instructions above.");
+  lines.push(`QUERY (restated): ${req.queryText}`);
   return lines.join("\n");
 }
 
@@ -89,12 +91,14 @@ export class OllamaGenerationService implements GenerationService {
   readonly modelName: string;
   private readonly baseUrl: string;
   private readonly maxTokens: number;
+  private readonly numCtx: number;
   private readonly fetchImpl: typeof fetch;
 
   constructor(opts: OllamaGenerationOptions) {
     this.baseUrl = opts.baseUrl.replace(/\/$/, "");
     this.modelName = opts.model;
     this.maxTokens = opts.maxTokens;
+    this.numCtx = opts.numCtx ?? 8192;
     this.fetchImpl = opts.fetchImpl ?? fetch;
   }
 
@@ -116,7 +120,7 @@ export class OllamaGenerationService implements GenerationService {
             { role: "user", content: userPrompt },
           ],
           stream: false,
-          options: { num_predict: numPredict },
+          options: { num_predict: numPredict, num_ctx: this.numCtx },
         }),
       });
     } catch (err) {

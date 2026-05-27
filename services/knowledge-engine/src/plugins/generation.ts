@@ -28,6 +28,7 @@ const generationPlugin: FastifyPluginAsync<GenerationPluginOptions> = async (
         "http://localhost:11434",
       model: process.env.LLM_MODEL ?? "llama3.2",
       maxTokens: Number(process.env.LLM_MAX_TOKENS ?? "1024"),
+      numCtx: Number(process.env.LLM_NUM_CTX ?? "8192"),
     });
 
   fastify.decorate("generation", generation);
