@@ -19,6 +19,7 @@
     "extract-pdf": "tsx --env-file=.env scripts/extract-pdf.ts",
     "batch-index": "tsx --env-file=.env scripts/batch-index.ts",
     "create-snapshot": "tsx --env-file=.env scripts/create-snapshot.ts",
+    "reset-kb": "tsx --env-file=.env scripts/reset-kb.ts",
     "load-ground-truth": "tsx --env-file=.env scripts/load-ground-truth.ts",
     "run-benchmark": "tsx --env-file=.env scripts/run-benchmark.ts"
   },
