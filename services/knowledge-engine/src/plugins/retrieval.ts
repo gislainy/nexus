@@ -10,6 +10,7 @@ import {
 } from "../services/retrieval/index.js";
 import {
   OllamaEmbeddingService,
+  TransformersEmbeddingService,
   type EmbeddingService,
 } from "../services/embedding.js";
 
@@ -45,13 +46,21 @@ const retrievalPlugin: FastifyPluginAsync<RetrievalPluginOptions> = async (
     hybrid: override ?? defaultThresholdByStrategy.hybrid,
   };
 
+  const embeddingProvider = process.env.EMBEDDING_PROVIDER ?? "transformers";
+
   const embedding: EmbeddingService =
     opts.embedding ??
-    new OllamaEmbeddingService({
-      baseUrl: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434",
-      model: process.env.EMBEDDING_MODEL ?? "nomic-embed-text",
-      dimension: Number(process.env.EMBEDDING_DIM ?? "768"),
-    });
+    (embeddingProvider === "ollama"
+      ? new OllamaEmbeddingService({
+          baseUrl: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434",
+          model: process.env.EMBEDDING_MODEL ?? "nomic-embed-text",
+          dimension: Number(process.env.EMBEDDING_DIM ?? "768"),
+        })
+      : new TransformersEmbeddingService({
+          model: process.env.EMBEDDING_MODEL ?? "Alibaba-NLP/gte-large-en-v1.5",
+          dimension: Number(process.env.EMBEDDING_DIM ?? "1024"),
+          quantized: process.env.EMBEDDING_QUANTIZED === "true",
+        }));
 
   const dense = new DenseRetrievalService(fastify.prisma, embedding, { minCosine });
   const sparse = new SparseRetrievalService(fastify.prisma);
