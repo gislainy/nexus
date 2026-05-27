@@ -37,17 +37,21 @@ export class HybridRetrievalService {
     topK: number,
     rrfK: number,
   ): RetrievalCandidate[] {
-    if (dense.length === 0) return [];
+    if (dense.length === 0 && sparse.length === 0) return [];
     const denseRank = new Map<string, number>();
     dense.forEach((c, i) => denseRank.set(c.chunkId, i + 1));
     const sparseRank = new Map<string, number>();
     sparse.forEach((c, i) => sparseRank.set(c.chunkId, i + 1));
 
     const fused: RetrievalCandidate[] = [];
-    for (const [id, rd] of denseRank) {
+    const allIds = new Set([...denseRank.keys(), ...sparseRank.keys()]);
+    for (const id of allIds) {
+      const rd = denseRank.get(id);
       const rs = sparseRank.get(id);
-      const contribSparse = rs !== undefined ? 1 / (rrfK + rs) : 0;
-      fused.push({ chunkId: id, score: 1 / (rrfK + rd) + contribSparse });
+      const score =
+        (rd !== undefined ? 1 / (rrfK + rd) : 0) +
+        (rs !== undefined ? 1 / (rrfK + rs) : 0);
+      fused.push({ chunkId: id, score });
     }
     fused.sort((a, b) => b.score - a.score);
     return fused.slice(0, topK);
