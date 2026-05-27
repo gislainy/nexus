@@ -1,5 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
-import { OllamaEmbeddingService } from "../../src/services/embedding.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  OllamaEmbeddingService,
+  TransformersEmbeddingService,
+} from "../../src/services/embedding.js";
+
+vi.mock("@xenova/transformers", () => ({
+  pipeline: vi.fn(),
+}));
+
+import { pipeline } from "@xenova/transformers";
 
 describe("OllamaEmbeddingService", () => {
   it("POSTs to /api/embeddings with correct payload and returns vector", async () => {
@@ -49,5 +58,68 @@ describe("OllamaEmbeddingService", () => {
       fetchImpl: fetchMock as unknown as typeof fetch,
     });
     await expect(svc.embed("x")).rejects.toThrow(/500/);
+  });
+});
+
+describe("TransformersEmbeddingService", () => {
+  const fakePipeline = vi.fn().mockResolvedValue({
+    data: new Float32Array(1024).fill(0.1),
+  });
+
+  beforeEach(() => {
+    vi.mocked(pipeline).mockReset();
+    fakePipeline.mockClear();
+    vi.mocked(pipeline).mockResolvedValue(fakePipeline as any);
+  });
+
+  it("loads the pipeline lazily on first embed call", async () => {
+    const svc = new TransformersEmbeddingService({
+      model: "Alibaba-NLP/gte-large-en-v1.5",
+      dimension: 1024,
+    });
+    expect(pipeline).not.toHaveBeenCalled();
+    await svc.embed("test");
+    expect(pipeline).toHaveBeenCalledOnce();
+  });
+
+  it("reuses the pipeline on subsequent calls (loads only once)", async () => {
+    const svc = new TransformersEmbeddingService({
+      model: "Alibaba-NLP/gte-large-en-v1.5",
+      dimension: 1024,
+    });
+    await svc.embed("first");
+    await svc.embed("second");
+    expect(pipeline).toHaveBeenCalledOnce();
+  });
+
+  it("returns a number[] of length equal to dimension", async () => {
+    const svc = new TransformersEmbeddingService({
+      model: "Alibaba-NLP/gte-large-en-v1.5",
+      dimension: 1024,
+    });
+    const result = await svc.embed("blockchain health");
+    expect(result).toHaveLength(1024);
+    expect(result.every((v) => typeof v === "number")).toBe(true);
+  });
+
+  it("calls pipeline with normalize=true and pooling=cls", async () => {
+    const svc = new TransformersEmbeddingService({
+      model: "Alibaba-NLP/gte-large-en-v1.5",
+      dimension: 1024,
+    });
+    await svc.embed("test");
+    expect(fakePipeline).toHaveBeenCalledWith(
+      ["test"],
+      { normalize: true, pooling: "cls" },
+    );
+  });
+
+  it("exposes modelName and dimension correctly", () => {
+    const svc = new TransformersEmbeddingService({
+      model: "Alibaba-NLP/gte-large-en-v1.5",
+      dimension: 1024,
+    });
+    expect(svc.modelName).toBe("Alibaba-NLP/gte-large-en-v1.5");
+    expect(svc.dimension).toBe(1024);
   });
 });
