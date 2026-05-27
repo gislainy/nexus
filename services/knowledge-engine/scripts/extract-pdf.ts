@@ -3,11 +3,51 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { PDFParse } from "pdf-parse";
 
+const SECTION_NAMES = new Set([
+  "abstract",
+  "introduction",
+  "background",
+  "related work",
+  "methods",
+  "methodology",
+  "materials and methods",
+  "results",
+  "discussion",
+  "conclusion",
+  "conclusions",
+  "references",
+  "acknowledgements",
+  "acknowledgments",
+  "appendix",
+  "limitations",
+  "future work",
+  "evaluation",
+  "experiments",
+  "preliminaries",
+  "motivation",
+  "contributions",
+  "summary",
+]);
+
+const NUMBERED_HEADER = /^\s*\d+(\.\d+)*\.?\s+[A-Z][\w\s\-&,:'/()]{1,80}$/;
+const ALL_CAPS_HEADER = /^\s*[A-Z][A-Z\s\-&]{2,60}$/;
+
+export function isLikelySectionHeader(line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed.length === 0) return false;
+  if (SECTION_NAMES.has(trimmed.toLowerCase())) return true;
+  if (NUMBERED_HEADER.test(trimmed)) return true;
+  if (ALL_CAPS_HEADER.test(trimmed)) return true;
+  return false;
+}
+
 export function cleanExtractedText(raw: string): string {
   let text = raw;
   text = text
     .split("\n")
-    .filter((line) => line.trim().length >= 20)
+    .filter(
+      (line) => line.trim().length >= 20 || isLikelySectionHeader(line),
+    )
     .join("\n");
   text = text.replace(/(\w)-\n(\w)/g, "$1$2");
   text = text.replace(/\n{3,}/g, "\n\n");
