@@ -18,15 +18,15 @@ datasource db {
 
 model DomainConfig {
   id            String   @id @default(uuid())
-  domainName    String
-  domainVersion String
+  domainName    String   @map("domain_name")
+  domainVersion String   @map("domain_version")
   description   String
   technology    String
-  tagSet        String[]
+  tagSet        String[] @map("tag_set")
   active        Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  approvedBy    String
-  approvedAt    DateTime
+  createdAt     DateTime @default(now()) @map("created_at")
+  approvedBy    String   @map("approved_by")
+  approvedAt    DateTime @map("approved_at")
 
   dimensions        DimensionDefinition[]
   profiles          ProfileDefinition[]
@@ -38,11 +38,12 @@ model DomainConfig {
   projects          Project[]
 
   @@unique([domainName, domainVersion])
+  @@map("domain_config")
 }
 
 model DimensionDefinition {
-  id             String       @id
-  domainConfigId String
+  id             String @id
+  domainConfigId String @map("domain_config_id")
   name           String
   description    String
   tag            String
@@ -51,65 +52,75 @@ model DimensionDefinition {
   warrants     WarrantDefinition[]
 
   @@unique([domainConfigId, id])
+  @@map("dimension_definition")
 }
 
 model ProfileDefinition {
-  id             String          @id
-  domainConfigId String
+  id             String         @id
+  domainConfigId String         @map("domain_config_id")
   name           String
   description    String
   vocabulary     String[]
-  technicalDepth TechnicalDepth
+  technicalDepth TechnicalDepth @map("technical_depth")
 
   domainConfig DomainConfig @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
 
   @@unique([domainConfigId, id])
+  @@map("profile_definition")
 }
 
 model WarrantDefinition {
   id                String   @id
-  domainConfigId    String
-  dimensionId       String
-  structuralWarrant String
+  domainConfigId    String   @map("domain_config_id")
+  dimensionId       String   @map("dimension_id")
+  structuralWarrant String   @map("structural_warrant")
   sources           String[]
 
-  domainConfig DomainConfig         @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
-  dimension    DimensionDefinition  @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  domainConfig DomainConfig        @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
+  dimension    DimensionDefinition @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+
+  @@map("warrant_definition")
 }
 
 model VetoDefinition {
   id              String   @id
-  domainConfigId  String
+  domainConfigId  String   @map("domain_config_id")
   condition       String
   description     String
-  evaluationRule  Json
-  remediationPath String[]
+  evaluationRule  Json     @map("evaluation_rule")
+  remediationPath String[] @map("remediation_path")
   sources         String[]
 
   domainConfig DomainConfig @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
+
+  @@map("veto_definition")
 }
 
 model ConflictDefinition {
   id             String @id @default(uuid())
-  domainConfigId String
-  dimensionAId   String
-  dimensionBId   String
-  conditionA     Json
-  conditionB     Json
+  domainConfigId String @map("domain_config_id")
+  dimensionAId   String @map("dimension_a_id")
+  dimensionBId   String @map("dimension_b_id")
+  conditionA     Json   @map("condition_a")
+  conditionB     Json   @map("condition_b")
   description    String
 
   domainConfig DomainConfig @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
+
+  @@map("conflict_definition")
 }
 
 model ArtifactVariable {
   id               String @id
-  domainConfigId   String
+  domainConfigId   String @map("domain_config_id")
   name             String
   description      String
-  extractionHint   String
-  mapsToQuestionId String
+  extractionHint   String @map("extraction_hint")
+  mapsToQuestionId String @map("maps_to_question_id")
 
   domainConfig DomainConfig @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
+
+  @@map("artifact_variable")
 }
 
 // ============================================================
@@ -120,54 +131,62 @@ model Project {
   id             String        @id @default(uuid())
   name           String
   description    String
-  domainConfigId String
+  domainConfigId String        @map("domain_config_id")
   status         ProjectStatus @default(ACTIVE)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
 
-  domainConfig    DomainConfig    @relation(fields: [domainConfigId], references: [id])
-  collaborators   Collaborator[]
-  sessions        Session[]
-  gitConnections  GitConnection[]
-  artifacts       Artifact[]
+  domainConfig   DomainConfig    @relation(fields: [domainConfigId], references: [id])
+  collaborators  Collaborator[]
+  sessions       Session[]
+  gitConnections GitConnection[]
+  artifacts      Artifact[]
+
+  @@map("project")
 }
 
 model Collaborator {
   id        String   @id @default(uuid())
-  projectId String
+  projectId String   @map("project_id")
   name      String
   email     String
-  profileId String
-  joinedAt  DateTime @default(now())
+  profileId String   @map("profile_id")
+  joinedAt  DateTime @default(now()) @map("joined_at")
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  profile Profile @relation(fields: [profileId], references: [id])
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  profile Profile  @relation(fields: [profileId], references: [id])
   answers Answer[]
+
+  @@map("collaborator")
 }
 
 model Profile {
-  id                   String                       @id @default(uuid())
+  id                   String                      @id @default(uuid())
   type                 ProfileType
   confidence           Float
-  identificationMethod ProfileIdentificationMethod
-  createdAt            DateTime                     @default(now())
-  updatedAt            DateTime                     @updatedAt
+  identificationMethod ProfileIdentificationMethod @map("identification_method")
+  createdAt            DateTime                    @default(now()) @map("created_at")
+  updatedAt            DateTime                    @updatedAt @map("updated_at")
 
   collaborators Collaborator[]
+
+  @@map("profile")
 }
 
 model Session {
   id             String        @id @default(uuid())
-  projectId      String
+  projectId      String        @map("project_id")
   status         SessionStatus @default(IN_PROGRESS)
-  xstateSnapshot Json?
-  startedAt      DateTime      @default(now())
-  completedAt    DateTime?
+  xstateSnapshot Json?         @map("xstate_snapshot")
+  startedAt      DateTime      @default(now()) @map("started_at")
+  completedAt    DateTime?     @map("completed_at")
 
-  project           Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project           Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
   questionInstances QuestionInstance[]
   answers           Answer[]
   recommendation    Recommendation?
+
+  @@map("session")
 }
 
 // ============================================================
@@ -176,74 +195,82 @@ model Session {
 
 model QuestionTemplate {
   id                    String            @id
-  domainConfigId        String
+  domainConfigId        String            @map("domain_config_id")
   dimension             String
-  targetProfiles        ProfileType[]
-  textPt                String
-  textEn                String
-  textByProfile         Json
-  inputType             QuestionInputType
+  targetProfiles        ProfileType[]     @map("target_profiles")
+  textPt                String            @map("text_pt")
+  textEn                String            @map("text_en")
+  textByProfile         Json              @map("text_by_profile")
+  inputType             QuestionInputType @map("input_type")
   options               String[]
-  isCriticalForArgument Boolean           @default(true)
-  isEntryNode           Boolean           @default(false)
+  isCriticalForArgument Boolean           @default(true) @map("is_critical_for_argument")
+  isEntryNode           Boolean           @default(false) @map("is_entry_node")
 
-  domainConfig    DomainConfig          @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
-  outgoingEdges   QuestionTemplateEdge[] @relation("EdgeSource")
-  incomingEdges   QuestionTemplateEdge[] @relation("EdgeTarget")
-  extractions     ArtifactExtraction[]
+  domainConfig  DomainConfig           @relation(fields: [domainConfigId], references: [id], onDelete: Cascade)
+  outgoingEdges QuestionTemplateEdge[] @relation("EdgeSource")
+  incomingEdges QuestionTemplateEdge[] @relation("EdgeTarget")
+  extractions   ArtifactExtraction[]
+
+  @@map("question_template")
 }
 
 model QuestionTemplateEdge {
   id               String        @id @default(uuid())
-  sourceTemplateId String
-  targetTemplateId String
+  sourceTemplateId String        @map("source_template_id")
+  targetTemplateId String        @map("target_template_id")
   dimension        String
   guard            Json?
-  profileTypes     ProfileType[]
+  profileTypes     ProfileType[] @map("profile_types")
 
   source QuestionTemplate @relation("EdgeSource", fields: [sourceTemplateId], references: [id], onDelete: Cascade)
   target QuestionTemplate @relation("EdgeTarget", fields: [targetTemplateId], references: [id], onDelete: Cascade)
+
+  @@map("question_template_edge")
 }
 
 model QuestionInstance {
   id               String                 @id @default(uuid())
-  sessionId        String
-  templateId       String?
-  parentInstanceId String?
-  generatedByLLM   Boolean                @default(false)
-  llmPromptUsed    String?
-  textShown        String
+  sessionId        String                 @map("session_id")
+  templateId       String?                @map("template_id")
+  parentInstanceId String?                @map("parent_instance_id")
+  generatedByLLM   Boolean                @default(false) @map("generated_by_llm")
+  llmPromptUsed    String?                @map("llm_prompt_used")
+  textShown        String                 @map("text_shown")
   dimension        String
-  inputType        QuestionInputType
+  inputType        QuestionInputType      @map("input_type")
   options          String[]
   status           QuestionInstanceStatus @default(PENDING)
   order            Int
-  createdAt        DateTime               @default(now())
-  skippedAt        DateTime?
+  createdAt        DateTime               @default(now()) @map("created_at")
+  skippedAt        DateTime?              @map("skipped_at")
 
-  session Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   answer  Answer?
+
+  @@map("question_instance")
 }
 
 model Answer {
   id                   String           @id @default(uuid())
-  sessionId            String
-  questionInstanceId   String           @unique
-  collaboratorId       String
+  sessionId            String           @map("session_id")
+  questionInstanceId   String           @unique @map("question_instance_id")
+  collaboratorId       String           @map("collaborator_id")
   value                String
   confidence           AnswerConfidence
-  delegatedTo          String?
-  epistemicConfidence  Float
-  answeredAt           DateTime         @default(now())
+  delegatedTo          String?          @map("delegated_to")
+  epistemicConfidence  Float            @map("epistemic_confidence")
+  answeredAt           DateTime         @default(now()) @map("answered_at")
   source               AnswerSource
-  artifactExtractionId String?
-  generatedByLLM       Boolean          @default(false)
+  artifactExtractionId String?          @map("artifact_extraction_id")
+  generatedByLLM       Boolean          @default(false) @map("generated_by_llm")
 
   session            Session             @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   questionInstance   QuestionInstance    @relation(fields: [questionInstanceId], references: [id], onDelete: Cascade)
   collaborator       Collaborator        @relation(fields: [collaboratorId], references: [id])
   artifactExtraction ArtifactExtraction? @relation(fields: [artifactExtractionId], references: [id])
   argumentsAsGround  Argument[]          @relation("ArgumentGrounds")
+
+  @@map("answer")
 }
 
 // ============================================================
@@ -252,51 +279,57 @@ model Answer {
 
 model GitConnection {
   id          String              @id @default(uuid())
-  projectId   String
-  gitRepoUrl  String
+  projectId   String              @map("project_id")
+  gitRepoUrl  String              @map("git_repo_url")
   branch      String
-  commitSha   String
+  commitSha   String              @map("commit_sha")
   status      GitConnectionStatus @default(CONNECTED)
-  connectedAt DateTime            @default(now())
-  lastSyncAt  DateTime?
+  connectedAt DateTime            @default(now()) @map("connected_at")
+  lastSyncAt  DateTime?           @map("last_sync_at")
 
   project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   artifacts Artifact[]
+
+  @@map("git_connection")
 }
 
 model Artifact {
-  id                String                 @id @default(uuid())
-  projectId         String
-  gitConnectionId   String?
-  type              ArtifactType
-  origin            ArtifactOrigin
-  filename          String
-  filePath          String?
-  storageKey        String
-  storageBucket     String
-  storageSizeBytes  Int
-  mimeType          String
-  analysisStatus    ArtifactAnalysisStatus @default(PENDING)
-  createdAt         DateTime               @default(now())
-  analyzedAt        DateTime?
+  id               String                 @id @default(uuid())
+  projectId        String                 @map("project_id")
+  gitConnectionId  String?                @map("git_connection_id")
+  type             ArtifactType
+  origin           ArtifactOrigin
+  filename         String
+  filePath         String?                @map("file_path")
+  storageKey       String                 @map("storage_key")
+  storageBucket    String                 @map("storage_bucket")
+  storageSizeBytes Int                    @map("storage_size_bytes")
+  mimeType         String                 @map("mime_type")
+  analysisStatus   ArtifactAnalysisStatus @default(PENDING) @map("analysis_status")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  analyzedAt       DateTime?              @map("analyzed_at")
 
   project       Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
   gitConnection GitConnection?       @relation(fields: [gitConnectionId], references: [id])
   extractions   ArtifactExtraction[]
+
+  @@map("artifact")
 }
 
 model ArtifactExtraction {
   id                 String   @id @default(uuid())
-  artifactId         String
-  questionTemplateId String
-  extractedValue     String
+  artifactId         String   @map("artifact_id")
+  questionTemplateId String   @map("question_template_id")
+  extractedValue     String   @map("extracted_value")
   confidence         Float
-  evidenceSnippet    String
-  extractedAt        DateTime @default(now())
+  evidenceSnippet    String   @map("evidence_snippet")
+  extractedAt        DateTime @default(now()) @map("extracted_at")
 
   artifact         Artifact         @relation(fields: [artifactId], references: [id], onDelete: Cascade)
   questionTemplate QuestionTemplate @relation(fields: [questionTemplateId], references: [id])
   answers          Answer[]
+
+  @@map("artifact_extraction")
 }
 
 // ============================================================
@@ -304,34 +337,38 @@ model ArtifactExtraction {
 // ============================================================
 
 model Recommendation {
-  id                    String                  @id @default(uuid())
-  sessionId             String                  @unique
+  id                    String                @id @default(uuid())
+  sessionId             String                @unique @map("session_id")
   verdict               RecommendationVerdict
-  argumentAcceptability Json
-  orientationText       String
-  blockerDiagnosis      String?
-  vetosTriggered        String[]
-  generatedAt           DateTime                @default(now())
+  argumentAcceptability Json                  @map("argument_acceptability")
+  orientationText       String                @map("orientation_text")
+  blockerDiagnosis      String?               @map("blocker_diagnosis")
+  vetosTriggered        String[]              @map("vetos_triggered")
+  generatedAt           DateTime              @default(now()) @map("generated_at")
 
   session   Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   arguments Argument[]
+
+  @@map("recommendation")
 }
 
 model Argument {
-  id                String                       @id @default(uuid())
-  recommendationId  String
-  dimension         String
-  warrant           String
-  backingChunkIds   String[]
-  claim             String
-  acceptability     ArgumentAcceptabilityStatus
-  defeatedBy        String?
-  suspendedByVeto   String?
+  id               String                      @id @default(uuid())
+  recommendationId String                      @map("recommendation_id")
+  dimension        String
+  warrant          String
+  backingChunkIds  String[]                    @map("backing_chunk_ids")
+  claim            String
+  acceptability    ArgumentAcceptabilityStatus
+  defeatedBy       String?                     @map("defeated_by")
+  suspendedByVeto  String?                     @map("suspended_by_veto")
 
   recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
   defeater       Argument?      @relation("ArgumentDefeats", fields: [defeatedBy], references: [id])
   defeated       Argument[]     @relation("ArgumentDefeats")
   grounds        Answer[]       @relation("ArgumentGrounds")
+
+  @@map("argument")
 }
 
 // ============================================================
@@ -340,19 +377,21 @@ model Argument {
 
 model LLMBenchmarkRecord {
   id              String   @id @default(uuid())
-  experimentId    String?
+  experimentId    String?  @map("experiment_id")
   provider        String
   component       String
   task            String
   prompt          String
   response        String
-  latencyMs       Int
-  tokensIn        Int
-  tokensOut       Int
-  evaluationScore Float?
+  latencyMs       Int      @map("latency_ms")
+  tokensIn        Int      @map("tokens_in")
+  tokensOut       Int      @map("tokens_out")
+  evaluationScore Float?   @map("evaluation_score")
   timestamp       DateTime @default(now())
 
   experiment BenchmarkExperiment? @relation(fields: [experimentId], references: [id])
+
+  @@map("llm_benchmark_record")
 }
 
 model BenchmarkExperiment {
@@ -361,34 +400,38 @@ model BenchmarkExperiment {
   description        String
   component          String
   task               String
-  candidateModels    String[]
-  testPrompts        Json
-  evaluationCriteria Json
+  candidateModels    String[]         @map("candidate_models")
+  testPrompts        Json             @map("test_prompts")
+  evaluationCriteria Json             @map("evaluation_criteria")
   status             ExperimentStatus @default(PLANNED)
-  winnerModel        String?
-  decisionRationale  String?
-  createdAt          DateTime         @default(now())
-  completedAt        DateTime?
+  winnerModel        String?          @map("winner_model")
+  decisionRationale  String?          @map("decision_rationale")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  completedAt        DateTime?        @map("completed_at")
 
   runs    BenchmarkRun[]
   records LLMBenchmarkRecord[]
+
+  @@map("benchmark_experiment")
 }
 
 model BenchmarkRun {
   id               String           @id @default(uuid())
-  experimentId     String
-  promptId         String
+  experimentId     String           @map("experiment_id")
+  promptId         String           @map("prompt_id")
   provider         String
   response         String
-  latencyMs        Int
-  tokensIn         Int
-  tokensOut        Int
-  evaluationScore  Float
-  evaluationMethod EvaluationMethod
-  evaluationNotes  String?
-  ranAt            DateTime         @default(now())
+  latencyMs        Int              @map("latency_ms")
+  tokensIn         Int              @map("tokens_in")
+  tokensOut        Int              @map("tokens_out")
+  evaluationScore  Float            @map("evaluation_score")
+  evaluationMethod EvaluationMethod @map("evaluation_method")
+  evaluationNotes  String?          @map("evaluation_notes")
+  ranAt            DateTime         @default(now()) @map("ran_at")
 
   experiment BenchmarkExperiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  @@map("benchmark_run")
 }
 
 // ============================================================
