@@ -64,7 +64,7 @@ export class IndexingService {
         const id = randomUUID();
         const vectorLiteral = `[${vector.join(",")}]`;
         await tx.$executeRaw`
-          INSERT INTO "KnowledgeChunk" (id, "paperId", tags, text, embedding, "pageRef", layer, "accessType", status, "createdAt")
+          INSERT INTO knowledge_chunk (id, paper_id, tags, text, embedding, page_ref, layer, access_type, status, created_at)
           VALUES (${id}, ${paper.id}, ${input.tags}::text[], ${chunk.text}, ${vectorLiteral}::public.vector, ${chunk.pageRef ?? null}, ${input.layer}, ${input.accessType}, 'active', NOW())
         `;
         created++;

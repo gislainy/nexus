@@ -29,7 +29,7 @@ export class DenseRetrievalService {
       Array<{ id: string; score: number }>
     >`
       SELECT id, 1 - (embedding OPERATOR(public.<=>) ${literal}::public.vector) AS score
-      FROM "KnowledgeChunk"
+      FROM knowledge_chunk
       WHERE status = 'active'
         AND (${tag ?? null}::text IS NULL OR ${tag ?? null}::text = ANY(tags))
         AND 1 - (embedding OPERATOR(public.<=>) ${literal}::public.vector) >= ${minCosine}
