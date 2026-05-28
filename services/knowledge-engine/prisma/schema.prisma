@@ -14,43 +14,49 @@ datasource db {
 }
 
 model Paper {
-  id            String   @id @default(uuid())
+  id            String           @id @default(uuid())
   title         String
   authors       String[]
   year          Int
   venue         String
   doi           String?
-  submodulePath String
-  pdfHash       String
-  accessType    String
+  submodulePath String           @map("submodule_path")
+  pdfHash       String           @map("pdf_hash")
+  accessType    String           @map("access_type")
   layer         String
-  indexedAt     DateTime @default(now())
+  indexedAt     DateTime         @default(now()) @map("indexed_at")
   chunks        KnowledgeChunk[]
+
+  @@map("paper")
 }
 
 model KnowledgeChunk {
-  id         String                       @id @default(uuid())
-  paperId    String
-  paper      Paper                        @relation(fields: [paperId], references: [id])
+  id         String                             @id @default(uuid())
+  paperId    String                             @map("paper_id")
+  paper      Paper                              @relation(fields: [paperId], references: [id])
   tags       String[]
   text       String
   claim      String?
   embedding  Unsupported("public.vector(768)")?
-  pageRef    String?
+  pageRef    String?                            @map("page_ref")
   layer      String
-  accessType String
-  status     String                       @default("active")
-  createdAt  DateTime                     @default(now())
+  accessType String                             @map("access_type")
+  status     String                             @default("active")
+  createdAt  DateTime                           @default(now()) @map("created_at")
+
+  @@map("knowledge_chunk")
 }
 
 model KnowledgeBaseSnapshot {
   id            String   @id @default(uuid())
   version       String   @unique
   description   String
-  chunkIds      String[]
-  coreCount     Int
-  expandedCount Int
-  createdAt     DateTime @default(now())
+  chunkIds      String[] @map("chunk_ids")
+  coreCount     Int      @map("core_count")
+  expandedCount Int      @map("expanded_count")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("knowledge_base_snapshot")
 }
 
 model IRGroundTruth {
@@ -59,45 +65,53 @@ model IRGroundTruth {
   description String
   pairs       IRGroundTruthPair[]
   experiments IRBenchmarkExperiment[]
+
+  @@map("ir_ground_truth")
 }
 
 model IRGroundTruthPair {
   id               String        @id @default(uuid())
-  groundTruthId    String
+  groundTruthId    String        @map("ground_truth_id")
   groundTruth      IRGroundTruth @relation(fields: [groundTruthId], references: [id])
-  queryText        String
+  queryText        String        @map("query_text")
   tag              String?
-  relevantChunkIds String[]
+  relevantChunkIds String[]      @map("relevant_chunk_ids")
   notes            String?
+
+  @@map("ir_ground_truth_pair")
 }
 
 model IRBenchmarkExperiment {
   id                String              @id @default(uuid())
   name              String
   description       String
-  experimentType    String
+  experimentType    String              @map("experiment_type")
   candidates        String[]
-  groundTruthId     String
+  groundTruthId     String              @map("ground_truth_id")
   groundTruth       IRGroundTruth       @relation(fields: [groundTruthId], references: [id])
   results           IRBenchmarkResult[]
-  winnerCandidate   String?
-  decisionRationale String?
+  winnerCandidate   String?             @map("winner_candidate")
+  decisionRationale String?             @map("decision_rationale")
   status            String              @default("PLANNED")
-  createdAt         DateTime            @default(now())
-  completedAt       DateTime?
+  createdAt         DateTime            @default(now()) @map("created_at")
+  completedAt       DateTime?           @map("completed_at")
+
+  @@map("ir_benchmark_experiment")
 }
 
 model IRBenchmarkResult {
   id                String                @id @default(uuid())
-  experimentId      String
+  experimentId      String                @map("experiment_id")
   experiment        IRBenchmarkExperiment @relation(fields: [experimentId], references: [id])
-  candidateId       String
-  rrfK              Int?
-  recallAt10        Float
+  candidateId       String                @map("candidate_id")
+  rrfK              Int?                  @map("rrf_k")
+  recallAt10        Float                 @map("recall_at10")
   mrr               Float
-  ndcgAt10          Float
-  indexingLatencyMs Int?
-  queryLatencyMs    Int?
-  byTag             Json
-  createdAt         DateTime              @default(now())
+  ndcgAt10          Float                 @map("ndcg_at10")
+  indexingLatencyMs Int?                  @map("indexing_latency_ms")
+  queryLatencyMs    Int?                  @map("query_latency_ms")
+  byTag             Json                  @map("by_tag")
+  createdAt         DateTime              @default(now()) @map("created_at")
+
+  @@map("ir_benchmark_result")
 }

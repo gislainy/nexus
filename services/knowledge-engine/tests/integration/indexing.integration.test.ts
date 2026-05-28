@@ -79,8 +79,8 @@ describe("IndexingService (integration)", () => {
     }
 
     const rows = await prisma.$queryRaw<Array<{ count: bigint }>>`
-      SELECT COUNT(*)::bigint AS count FROM "KnowledgeChunk"
-      WHERE "paperId" = ${result.paperId} AND embedding IS NOT NULL
+      SELECT COUNT(*)::bigint AS count FROM knowledge_chunk
+      WHERE paper_id = ${result.paperId} AND embedding IS NOT NULL
     `;
     expect(Number(rows[0].count)).toBe(result.chunksCreated);
   });
