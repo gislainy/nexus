@@ -149,3 +149,80 @@ export const InviteCollaboratorInput = z.object({
   suggestedProfile: ProfileType,
 });
 export type InviteCollaboratorInput = z.infer<typeof InviteCollaboratorInput>;
+
+// ---------- EpistemicAlignment ----------
+
+export const DIMENSION_KEYS = [
+  "TECHNICAL_JUSTIFICATION",
+  "REGULATORY_COMPLIANCE",
+  "BLOCKCHAIN_TYPE",
+  "PRIVACY_MECHANISMS",
+  "IMPLEMENTATION_CAPACITY",
+  "CONSENSUS_ADEQUACY",
+] as const;
+export type DimensionKey = (typeof DIMENSION_KEYS)[number];
+
+export const ALIGNMENT_MATRIX: Record<
+  ProfileType,
+  Record<DimensionKey, number>
+> = {
+  MANAGER: {
+    TECHNICAL_JUSTIFICATION: 0.4,
+    REGULATORY_COMPLIANCE: 0.9,
+    BLOCKCHAIN_TYPE: 0.5,
+    PRIVACY_MECHANISMS: 0.6,
+    IMPLEMENTATION_CAPACITY: 0.3,
+    CONSENSUS_ADEQUACY: 0.4,
+  },
+  ARCHITECT: {
+    TECHNICAL_JUSTIFICATION: 0.9,
+    REGULATORY_COMPLIANCE: 0.6,
+    BLOCKCHAIN_TYPE: 0.8,
+    PRIVACY_MECHANISMS: 0.7,
+    IMPLEMENTATION_CAPACITY: 0.7,
+    CONSENSUS_ADEQUACY: 0.8,
+  },
+  DEVELOPER: {
+    TECHNICAL_JUSTIFICATION: 0.8,
+    REGULATORY_COMPLIANCE: 0.4,
+    BLOCKCHAIN_TYPE: 0.6,
+    PRIVACY_MECHANISMS: 0.6,
+    IMPLEMENTATION_CAPACITY: 0.9,
+    CONSENSUS_ADEQUACY: 0.7,
+  },
+  CLINICAL: {
+    TECHNICAL_JUSTIFICATION: 0.4,
+    REGULATORY_COMPLIANCE: 0.7,
+    BLOCKCHAIN_TYPE: 0.4,
+    PRIVACY_MECHANISMS: 0.8,
+    IMPLEMENTATION_CAPACITY: 0.3,
+    CONSENSUS_ADEQUACY: 0.3,
+  },
+  REGULATORY: {
+    TECHNICAL_JUSTIFICATION: 0.5,
+    REGULATORY_COMPLIANCE: 1.0,
+    BLOCKCHAIN_TYPE: 0.5,
+    PRIVACY_MECHANISMS: 0.9,
+    IMPLEMENTATION_CAPACITY: 0.4,
+    CONSENSUS_ADEQUACY: 0.5,
+  },
+};
+
+export const CONFIDENCE_MULTIPLIER: Record<
+  "CERTAIN" | "UNCERTAIN" | "DELEGATED",
+  number
+> = {
+  CERTAIN: 1.0,
+  UNCERTAIN: 0.5,
+  DELEGATED: 0.0,
+};
+
+export function calculateEpistemicConfidence(
+  profileType: ProfileType,
+  dimension: DimensionKey,
+  signal: "CERTAIN" | "UNCERTAIN" | "DELEGATED",
+): number {
+  const alignment = ALIGNMENT_MATRIX[profileType][dimension];
+  const multiplier = CONFIDENCE_MULTIPLIER[signal];
+  return alignment * multiplier;
+}
