@@ -94,3 +94,21 @@ export const SessionContext = z.object({
   locale: Locale,
 });
 export type SessionContext = z.infer<typeof SessionContext>;
+
+// ---------- ProjectContext (C1 → C4) ----------
+
+export const ProjectCollaboratorSummary = z.object({
+  collaboratorId: z.string().uuid(),
+  name: z.string(),
+  profileType: ProfileType,
+});
+export type ProjectCollaboratorSummary = z.infer<
+  typeof ProjectCollaboratorSummary
+>;
+
+export const ProjectContext = z.object({
+  projectId: z.string().uuid(),
+  description: z.string(),
+  collaborators: z.array(ProjectCollaboratorSummary),
+});
+export type ProjectContext = z.infer<typeof ProjectContext>;
