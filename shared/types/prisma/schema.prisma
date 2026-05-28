@@ -268,7 +268,7 @@ model Answer {
   questionInstance   QuestionInstance    @relation(fields: [questionInstanceId], references: [id], onDelete: Cascade)
   collaborator       Collaborator        @relation(fields: [collaboratorId], references: [id])
   artifactExtraction ArtifactExtraction? @relation(fields: [artifactExtractionId], references: [id])
-  argumentsAsGround  Argument[]          @relation("ArgumentGrounds")
+  argumentsAsGround  ArgumentGround[]
 
   @@map("answer")
 }
@@ -363,12 +363,24 @@ model Argument {
   defeatedBy       String?                     @map("defeated_by")
   suspendedByVeto  String?                     @map("suspended_by_veto")
 
-  recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
-  defeater       Argument?      @relation("ArgumentDefeats", fields: [defeatedBy], references: [id])
-  defeated       Argument[]     @relation("ArgumentDefeats")
-  grounds        Answer[]       @relation("ArgumentGrounds")
+  recommendation Recommendation   @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  defeater       Argument?        @relation("ArgumentDefeats", fields: [defeatedBy], references: [id])
+  defeated       Argument[]       @relation("ArgumentDefeats")
+  grounds        ArgumentGround[]
 
   @@map("argument")
+}
+
+model ArgumentGround {
+  answerId   String @map("answer_id")
+  argumentId String @map("argument_id")
+
+  answer   Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  argument Argument @relation(fields: [argumentId], references: [id], onDelete: Cascade)
+
+  @@id([answerId, argumentId])
+  @@index([argumentId])
+  @@map("argument_ground")
 }
 
 // ============================================================
