@@ -13,6 +13,7 @@ export interface ProjectRepository {
   ): Promise<{ projectId: string; sessionId: string; createdAt: Date }>;
   findContextById(projectId: string): Promise<ProjectContext | null>;
   findActiveDomainConfigId(): Promise<string | null>;
+  existsById(projectId: string): Promise<boolean>;
 }
 
 export function createProjectRepository(
@@ -71,6 +72,14 @@ export function createProjectRepository(
         where: { active: true },
       });
       return domainConfig?.id ?? null;
+    },
+
+    async existsById(projectId) {
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { id: true },
+      });
+      return project !== null;
     },
   };
 }
