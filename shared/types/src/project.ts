@@ -112,3 +112,40 @@ export const ProjectContext = z.object({
   collaborators: z.array(ProjectCollaboratorSummary),
 });
 export type ProjectContext = z.infer<typeof ProjectContext>;
+
+// ---------- ProfileEvent (synthetic history — no table in schema) ----------
+
+export const ProfileEventType = z.enum([
+  "INITIAL_DECLARATION",
+  "EXPLICIT_REVISION",
+]);
+export type ProfileEventType = z.infer<typeof ProfileEventType>;
+
+export const ProfileEvent = z.object({
+  type: ProfileEventType,
+  profileType: ProfileType,
+  confidence: z.number(),
+  identificationMethod: ProfileIdentificationMethod,
+  occurredAt: z.string().datetime(),
+});
+export type ProfileEvent = z.infer<typeof ProfileEvent>;
+
+// ---------- CollaboratorProfile (GET /profile response) ----------
+
+export const CollaboratorProfile = z.object({
+  collaboratorId: z.string().uuid(),
+  profileType: ProfileType,
+  confidence: z.number(),
+  identificationMethod: ProfileIdentificationMethod,
+  history: z.array(ProfileEvent),
+});
+export type CollaboratorProfile = z.infer<typeof CollaboratorProfile>;
+
+// ---------- InviteCollaboratorInput (POST /collaborators body) ----------
+
+export const InviteCollaboratorInput = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  suggestedProfile: ProfileType,
+});
+export type InviteCollaboratorInput = z.infer<typeof InviteCollaboratorInput>;
