@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm --filter profile-manager db:generate
+
       - name: Type check
         run: pnpm --filter profile-manager tsc --noEmit
 
@@ -48,6 +51,11 @@ jobs:
 
       - name: Run migrations
         run: pnpm --filter profile-manager db:migrate
+        env:
+          DATABASE_URL: postgresql://nexus:nexus_test@localhost:5432/nexus_test
+
+      - name: Seed reference domain
+        run: pnpm --filter @nexus/types db:seed
         env:
           DATABASE_URL: postgresql://nexus:nexus_test@localhost:5432/nexus_test
 
