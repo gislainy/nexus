@@ -3,6 +3,7 @@ import prismaPlugin from "./plugins/prisma.js";
 import { healthRoutes } from "./routes/health.js";
 import { projectRoutes } from "./routes/projects.js";
 import { collaboratorsRoutes } from "./routes/collaborators.js";
+import { sessionsRoutes } from "./routes/sessions.js";
 
 export async function buildServer(
   opts: {
@@ -15,6 +16,7 @@ export async function buildServer(
     await fastify.register(prismaPlugin);
     await fastify.register(projectRoutes);
     await fastify.register(collaboratorsRoutes);
+    await fastify.register(sessionsRoutes);
   }
 
   await fastify.register(healthRoutes);
