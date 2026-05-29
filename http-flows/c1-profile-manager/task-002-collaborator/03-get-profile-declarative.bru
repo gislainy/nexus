@@ -1,0 +1,20 @@
+meta {
+  name: GET /profile (DECLARATIVE — 1 evento no histórico)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{c1Url}}/projects/{{projectId}}/collaborators/{{collaboratorId}}/profile
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.collaboratorId: eq {{collaboratorId}}
+  res.body.profileType: eq ARCHITECT
+  res.body.confidence: eq 0.7
+  res.body.identificationMethod: eq DECLARATIVE
+  res.body.history: isDefined
+}

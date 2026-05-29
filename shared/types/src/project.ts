@@ -226,3 +226,28 @@ export function calculateEpistemicConfidence(
   const multiplier = CONFIDENCE_MULTIPLIER[signal];
   return alignment * multiplier;
 }
+
+// ---------- Gap Analysis ----------
+
+export const GAP_THRESHOLD = 0.6;
+export const DIFFUSE_GAP_THRESHOLD = 0.35;
+export const DIFFUSE_GAP_MIN_DIMENSIONS = 3;
+
+export interface DimensionGapReport {
+  dimension: DimensionKey;
+  gapRatio: number;
+  type: "FOCUSED" | "DIFFUSE";
+}
+
+export interface LLMProfileSuggestion {
+  suggestedProfile: ProfileType;
+  justification: string;
+  promptUsed: string;
+  rawResponse: string;
+}
+
+export interface GapAnalysisResult {
+  hasGap: boolean;
+  gaps: DimensionGapReport[];
+  llmSuggestion: LLMProfileSuggestion | null;
+}

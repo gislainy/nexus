@@ -1,0 +1,32 @@
+meta {
+  name: POST /complete (sem gap → nenhum log de gap)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/collaborators/{{collaboratorId}}/complete
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+docs {
+  Pré-condição: inserir via psql respostas CERTAIN para todas as dimensões (0% gap).
+  Sessão deve estar em SUFFICIENT.
+
+  Verificação: inspecionar os logs do serviço após o request.
+  Nenhum log com "gap detected" deve aparecer.
+}
+
+assert {
+  res.status: eq 200
+  res.body.sessionStatus: isDefined
+}

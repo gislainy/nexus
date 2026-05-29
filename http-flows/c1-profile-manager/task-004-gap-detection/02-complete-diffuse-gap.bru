@@ -1,0 +1,34 @@
+meta {
+  name: POST /complete (padrão DIFFUSE → log com type DIFFUSE)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/collaborators/{{collaboratorId}}/complete
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+docs {
+  Pré-condição: inserir via psql respostas UNCERTAIN para 3+ dimensões
+  com gapRatio entre 0.35 e 0.60. Nenhuma dimensão deve ultrapassar 0.60.
+  Sessão deve estar em SUFFICIENT.
+
+  Verificação: inspecionar os logs do serviço após o request.
+  Deve aparecer log com "gap detected" e type: "DIFFUSE".
+  llmSuggestion será null — GenerationService é stub nesta task.
+}
+
+assert {
+  res.status: eq 200
+  res.body.sessionStatus: isDefined
+}

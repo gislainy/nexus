@@ -1,0 +1,36 @@
+meta {
+  name: POST /collaborators (ARCHITECT)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{c1Url}}/projects/{{projectId}}/collaborators
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Ana Lima",
+    "email": "ana.lima@hospital.com",
+    "suggestedProfile": "ARCHITECT"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("collaboratorId", res.body.collaboratorId);
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.collaboratorId: isDefined
+  res.body.profileType: eq ARCHITECT
+  res.body.createdAt: isDefined
+}

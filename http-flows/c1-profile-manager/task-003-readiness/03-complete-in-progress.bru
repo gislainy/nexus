@@ -1,0 +1,29 @@
+meta {
+  name: POST /complete (IN_PROGRESS → sem alteração)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/collaborators/{{collaboratorId}}/complete
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+docs {
+  Pré-condição: sessão deve estar em IN_PROGRESS (status padrão ao criar projeto).
+    UPDATE session SET status = 'IN_PROGRESS' WHERE id = '<sessionId>';
+}
+
+assert {
+  res.status: eq 200
+  res.body.sessionStatus: eq IN_PROGRESS
+}

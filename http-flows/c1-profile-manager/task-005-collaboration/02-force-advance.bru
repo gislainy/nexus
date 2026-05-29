@@ -1,0 +1,31 @@
+meta {
+  name: POST /force-advance (AWAITING_DELEGATION → READY_FOR_ARGUMENTATION)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/force-advance
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "reason": "Collaborator will not respond in time"
+  }
+}
+
+docs {
+  Precondition: session must be in AWAITING_DELEGATION.
+    UPDATE session SET status = 'AWAITING_DELEGATION' WHERE id = '<sessionId>';
+}
+
+assert {
+  res.status: eq 200
+  res.body.sessionStatus: eq READY_FOR_ARGUMENTATION
+}

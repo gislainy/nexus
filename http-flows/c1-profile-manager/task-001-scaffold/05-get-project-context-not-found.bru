@@ -1,0 +1,16 @@
+meta {
+  name: GET /projects/:projectId/context (não encontrado)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{c1Url}}/projects/00000000-0000-0000-0000-000000000000/context
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 404
+  res.body.error: eq Project not found
+}
