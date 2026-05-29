@@ -34,6 +34,13 @@ const nullGeneration: GenerationService = {
   },
 };
 
+// Mirrors the production stub: a GenerationService that always returns null.
+const stubGeneration: GenerationService = {
+  async complete() {
+    return null;
+  },
+};
+
 describe("analyzeGaps", () => {
   it("reports no gap when every dimension is fully certain", async () => {
     const answerRepository = fakeAnswerRepository([
@@ -121,6 +128,19 @@ describe("analyzeGaps", () => {
     const service = createGapService(answerRepository, generation);
     const result = await service.analyzeGaps("s1", "c1", current);
     expect(result.hasGap).toBe(true);
+    expect(result.llmSuggestion).toBeNull();
+  });
+
+  it("yields no suggestion when the generation stub returns null on a diffuse pattern", async () => {
+    const answerRepository = fakeAnswerRepository([
+      { dimension: "TECHNICAL_JUSTIFICATION", total: 2, uncertainOrDelegated: 1 },
+      { dimension: "REGULATORY_COMPLIANCE", total: 2, uncertainOrDelegated: 1 },
+      { dimension: "PRIVACY_MECHANISMS", total: 2, uncertainOrDelegated: 1 },
+    ]);
+    const service = createGapService(answerRepository, stubGeneration);
+    const result = await service.analyzeGaps("s1", "c1", "ARCHITECT");
+    expect(result.hasGap).toBe(true);
+    expect(result.gaps.every((g) => g.type === "DIFFUSE")).toBe(true);
     expect(result.llmSuggestion).toBeNull();
   });
 });

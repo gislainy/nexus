@@ -1,5 +1,4 @@
 import type { FastifyPluginAsync } from "fastify";
-import { createLLMProvider, type LLMProviderName } from "@nexus/types";
 import { createProjectRepository } from "../repositories/project.repository.js";
 import { createCollaboratorRepository } from "../repositories/collaborator.repository.js";
 import { createSessionRepository } from "../repositories/session.repository.js";
@@ -25,18 +24,12 @@ export const sessionsRoutes: FastifyPluginAsync = async (fastify) => {
     sessionRepository,
   );
 
-  // GenerationService wraps the shared LLMProvider, exposing only the
-  // string-in/string-out contract the gap service depends on. It is invoked
-  // exclusively when a diffuse gap pattern is detected.
-  const provider = createLLMProvider({
-    provider: (process.env.LLM_PROVIDER as LLMProviderName) ?? "ollama",
-    baseUrl: process.env.LLM_BASE_URL ?? process.env.OLLAMA_BASE_URL,
-    model: process.env.LLM_MODEL,
-  });
+  // GenerationService stub — returns null until an LLM model is selected and
+  // benchmarked. No real provider is connected in this task; dependency
+  // injection lets the concrete implementation be swapped without code changes.
   const generationService: GenerationService = {
-    async complete(prompt) {
-      const result = await provider.complete(prompt);
-      return result.text;
+    async complete() {
+      return null;
     },
   };
   const gapService = createGapService(answerRepository, generationService);

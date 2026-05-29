@@ -10,10 +10,11 @@ import {
 } from "@nexus/types";
 import type { AnswerRepository } from "../repositories/answer.repository.js";
 
-// Abstraction over the LLM so the service stays testable. In tests a null or
-// mock implementation is injected; in production it wraps an LLMProvider.
+// Abstraction over the LLM so the service stays testable. The concrete
+// implementation is a stub returning null until a model is selected and
+// benchmarked; when complete resolves to null, no suggestion is produced.
 export interface GenerationService {
-  complete(prompt: string): Promise<string>;
+  complete(prompt: string): Promise<string | null>;
 }
 
 export interface GapService {
@@ -141,12 +142,13 @@ export function createGapService(
         const gapDimensions = diffuse.map((r) => r.dimension);
         const prompt = buildSuggestionPrompt(profileType, ratios, gapDimensions);
         const rawResponse = await generationService.complete(prompt);
-        const parsed = parseSuggestion(rawResponse);
+        const parsed =
+          rawResponse !== null ? parseSuggestion(rawResponse) : null;
         const suggested = parsed
           ? validateSuggestion(parsed, profileType, gapDimensions)
           : null;
         const llmSuggestion: LLMProfileSuggestion | null =
-          parsed && suggested
+          rawResponse !== null && parsed && suggested
             ? {
                 suggestedProfile: suggested,
                 justification: parsed.justification,
