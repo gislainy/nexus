@@ -6,11 +6,21 @@ export interface DimensionAnswerStats {
   uncertainOrDelegated: number;
 }
 
+export interface ConfidentAnswer {
+  id: string;
+  value: string;
+  epistemicConfidence: number;
+}
+
 export interface AnswerRepository {
   getDimensionStatsForCollaborator(
     sessionId: string,
     collaboratorId: string,
   ): Promise<DimensionAnswerStats[]>;
+  findConfidentAnswersForInstance(
+    questionInstanceId: string,
+    minEpistemicConfidence: number,
+  ): Promise<ConfidentAnswer[]>;
 }
 
 export function createAnswerRepository(
@@ -36,6 +46,24 @@ export function createAnswerRepository(
         dimension: row.dimension,
         total: Number(row.total),
         uncertainOrDelegated: Number(row.uncertain_or_delegated),
+      }));
+    },
+
+    async findConfidentAnswersForInstance(
+      questionInstanceId,
+      minEpistemicConfidence,
+    ) {
+      const answers = await prisma.answer.findMany({
+        where: {
+          questionInstanceId,
+          epistemicConfidence: { gt: minEpistemicConfidence },
+        },
+        select: { id: true, value: true, epistemicConfidence: true },
+      });
+      return answers.map((answer) => ({
+        id: answer.id,
+        value: answer.value,
+        epistemicConfidence: answer.epistemicConfidence,
       }));
     },
   };

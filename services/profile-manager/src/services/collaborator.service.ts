@@ -36,6 +36,7 @@ export interface CollaboratorService {
   ): Promise<CollaboratorProfile>;
   patchProfile(payload: PatchProfilePayload): Promise<CollaboratorProfile>;
   evaluateReadiness(sessionId: string): Promise<SessionStatus>;
+  forceAdvance(sessionId: string): Promise<SessionStatus>;
 }
 
 export function createCollaboratorService(
@@ -90,6 +91,17 @@ export function createCollaboratorService(
         pending > 0 ? "AWAITING_DELEGATION" : "READY_FOR_ARGUMENTATION";
       await sessionRepository.updateStatus(sessionId, next);
       return next;
+    },
+
+    async forceAdvance(sessionId) {
+      const status = await sessionRepository.findStatusById(sessionId);
+      if (!status) {
+        throw new Error("Session not found");
+      }
+      if (status !== "AWAITING_DELEGATION") {
+        throw new Error("Session is not in AWAITING_DELEGATION status");
+      }
+      return sessionRepository.forceAdvance(sessionId);
     },
   };
 }

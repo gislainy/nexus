@@ -5,6 +5,10 @@ export interface SessionRepository {
   findStatusById(sessionId: string): Promise<SessionStatus | null>;
   updateStatus(sessionId: string, status: SessionStatus): Promise<void>;
   countPendingDelegations(sessionId: string): Promise<number>;
+  forceAdvance(sessionId: string): Promise<SessionStatus>;
+  findStatusWithPendingDelegations(
+    sessionId: string,
+  ): Promise<{ status: SessionStatus; pendingDelegations: number } | null>;
 }
 
 export function createSessionRepository(
@@ -40,6 +44,24 @@ export function createSessionRepository(
           )
       `;
       return Number(rows[0]?.count ?? 0);
+    },
+
+    async forceAdvance(sessionId) {
+      const next: SessionStatus = "READY_FOR_ARGUMENTATION";
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: { status: next },
+      });
+      return next;
+    },
+
+    async findStatusWithPendingDelegations(sessionId) {
+      const status = await this.findStatusById(sessionId);
+      if (!status) {
+        return null;
+      }
+      const pendingDelegations = await this.countPendingDelegations(sessionId);
+      return { status, pendingDelegations };
     },
   };
 }
