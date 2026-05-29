@@ -9,6 +9,7 @@ import type {
   CreateCollaboratorInput,
 } from "../../src/repositories/collaborator.repository.js";
 import type { ProjectRepository } from "../../src/repositories/project.repository.js";
+import type { SessionRepository } from "../../src/repositories/session.repository.js";
 
 interface FakeOptions {
   projectExists?: boolean;
@@ -93,10 +94,20 @@ function makeService(opts: FakeOptions = {}): {
       return opts.projectExists ?? true;
     },
   };
+  const sessionRepository: SessionRepository = {
+    async findStatusById() {
+      return null;
+    },
+    async updateStatus() {},
+    async countPendingDelegations() {
+      return 0;
+    },
+  };
   return {
     service: createCollaboratorService(
       collaboratorRepository,
       projectRepository,
+      sessionRepository,
     ),
     calls,
   };

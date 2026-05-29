@@ -1,6 +1,11 @@
-import type { CollaboratorProfile, ProfileType } from "@nexus/types";
+import type {
+  CollaboratorProfile,
+  ProfileType,
+  SessionStatus,
+} from "@nexus/types";
 import type { ProjectRepository } from "../repositories/project.repository.js";
 import type { CollaboratorRepository } from "../repositories/collaborator.repository.js";
+import type { SessionRepository } from "../repositories/session.repository.js";
 
 export interface InviteCollaboratorPayload {
   projectId: string;
@@ -30,11 +35,13 @@ export interface CollaboratorService {
     collaboratorId: string,
   ): Promise<CollaboratorProfile>;
   patchProfile(payload: PatchProfilePayload): Promise<CollaboratorProfile>;
+  evaluateReadiness(sessionId: string): Promise<SessionStatus>;
 }
 
 export function createCollaboratorService(
   collaboratorRepository: CollaboratorRepository,
   projectRepository: ProjectRepository,
+  sessionRepository: SessionRepository,
 ): CollaboratorService {
   return {
     async inviteCollaborator(payload) {
@@ -67,6 +74,22 @@ export function createCollaboratorService(
         payload.collaboratorId,
         payload.profileType,
       );
+    },
+
+    async evaluateReadiness(sessionId) {
+      const status = await sessionRepository.findStatusById(sessionId);
+      if (!status) {
+        throw new Error("Session not found");
+      }
+      if (status !== "SUFFICIENT" && status !== "AWAITING_DELEGATION") {
+        return status;
+      }
+      const pending =
+        await sessionRepository.countPendingDelegations(sessionId);
+      const next: SessionStatus =
+        pending > 0 ? "AWAITING_DELEGATION" : "READY_FOR_ARGUMENTATION";
+      await sessionRepository.updateStatus(sessionId, next);
+      return next;
     },
   };
 }

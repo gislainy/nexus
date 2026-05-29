@@ -3,6 +3,7 @@ import { z } from "zod";
 import { InviteCollaboratorInput, ProfileType } from "@nexus/types";
 import { createProjectRepository } from "../repositories/project.repository.js";
 import { createCollaboratorRepository } from "../repositories/collaborator.repository.js";
+import { createSessionRepository } from "../repositories/session.repository.js";
 import { createCollaboratorService } from "../services/collaborator.service.js";
 
 const PatchProfileBody = z.object({ profileType: ProfileType });
@@ -10,9 +11,11 @@ const PatchProfileBody = z.object({ profileType: ProfileType });
 export const collaboratorsRoutes: FastifyPluginAsync = async (fastify) => {
   const projectRepository = createProjectRepository(fastify.prisma);
   const collaboratorRepository = createCollaboratorRepository(fastify.prisma);
+  const sessionRepository = createSessionRepository(fastify.prisma);
   const service = createCollaboratorService(
     collaboratorRepository,
     projectRepository,
+    sessionRepository,
   );
 
   fastify.post<{ Params: { projectId: string } }>(
