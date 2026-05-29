@@ -1,0 +1,38 @@
+meta {
+  name: POST /answers/check-conflict (BOOLEAN contraditório → hasConflict true)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/answers/check-conflict
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "questionInstanceId": "{{questionInstanceId}}",
+    "newAnswer": {
+      "value": "false",
+      "inputType": "BOOLEAN",
+      "collaboratorId": "{{collaboratorId2}}",
+      "epistemicConfidence": 0.85
+    }
+  }
+}
+
+docs {
+  Precondition: insert via psql an existing Answer for questionInstanceId
+  with value="true", confidence='CERTAIN', epistemic_confidence=0.8.
+  The new answer (value="false") is contradictory → should return hasConflict: true.
+}
+
+assert {
+  res.status: eq 200
+  res.body.hasConflict: eq true
+}

@@ -1,0 +1,34 @@
+meta {
+  name: POST /projects (sem domainConfigId — usa domínio ativo)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{c1Url}}/projects
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Projeto sem domínio explícito",
+    "description": "Teste de fallback para domínio ativo"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("projectId2", res.body.projectId);
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.projectId: isDefined
+  res.body.sessionId: isDefined
+}

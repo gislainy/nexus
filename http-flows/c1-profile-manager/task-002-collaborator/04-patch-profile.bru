@@ -1,0 +1,28 @@
+meta {
+  name: PATCH /profile (revisão para DEVELOPER)
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{c1Url}}/projects/{{projectId}}/collaborators/{{collaboratorId}}/profile
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "profileType": "DEVELOPER"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.profileType: eq DEVELOPER
+  res.body.confidence: eq 1
+  res.body.identificationMethod: eq OWNER_REVISION
+}

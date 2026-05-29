@@ -1,0 +1,18 @@
+meta {
+  name: GET /projects/:projectId/context (existente)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{c1Url}}/projects/{{projectId}}/context
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.projectId: eq {{projectId}}
+  res.body.description: isDefined
+  res.body.collaborators: isDefined
+}

@@ -1,0 +1,30 @@
+meta {
+  name: POST /complete (SUFFICIENT sem delegações → READY_FOR_ARGUMENTATION)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/collaborators/{{collaboratorId}}/complete
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+docs {
+  Pré-condição: executar via psql antes deste request:
+    UPDATE session SET status = 'SUFFICIENT' WHERE id = '<sessionId>';
+  Garantir que não há respostas DELEGATED pendentes na sessão.
+}
+
+assert {
+  res.status: eq 200
+  res.body.sessionStatus: eq READY_FOR_ARGUMENTATION
+}

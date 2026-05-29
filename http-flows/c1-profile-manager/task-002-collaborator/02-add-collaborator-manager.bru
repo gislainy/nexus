@@ -1,0 +1,35 @@
+meta {
+  name: POST /collaborators (MANAGER)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{c1Url}}/projects/{{projectId}}/collaborators
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Bruno Souza",
+    "email": "bruno.souza@hospital.com",
+    "suggestedProfile": "MANAGER"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("collaboratorId2", res.body.collaboratorId);
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.collaboratorId: isDefined
+  res.body.profileType: eq MANAGER
+}

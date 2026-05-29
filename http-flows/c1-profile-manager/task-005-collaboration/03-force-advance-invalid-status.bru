@@ -1,0 +1,29 @@
+meta {
+  name: POST /force-advance (sessão IN_PROGRESS → 400)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/force-advance
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+docs {
+  Precondition: session must be in IN_PROGRESS (not AWAITING_DELEGATION).
+    UPDATE session SET status = 'IN_PROGRESS' WHERE id = '<sessionId>';
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}

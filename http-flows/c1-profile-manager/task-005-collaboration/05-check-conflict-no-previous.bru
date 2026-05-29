@@ -1,0 +1,37 @@
+meta {
+  name: POST /answers/check-conflict (sem resposta anterior → hasConflict false)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/answers/check-conflict
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "questionInstanceId": "00000000-0000-0000-0000-000000000001",
+    "newAnswer": {
+      "value": "true",
+      "inputType": "BOOLEAN",
+      "collaboratorId": "{{collaboratorId}}",
+      "epistemicConfidence": 0.9
+    }
+  }
+}
+
+docs {
+  No previous answer for this questionInstanceId.
+  Should return hasConflict: false.
+}
+
+assert {
+  res.status: eq 200
+  res.body.hasConflict: eq false
+}

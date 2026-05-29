@@ -1,0 +1,14 @@
+vars {
+  c1Url: http://localhost:8002
+  c4Url: http://localhost:8004
+  c3Url: http://localhost:8003
+  c5Url: http://localhost:8005
+  c0Url: http://localhost:8001
+  projectId:
+  projectId2:
+  sessionId:
+  sessionId2:
+  collaboratorId:
+  collaboratorId2:
+  questionInstanceId:
+}

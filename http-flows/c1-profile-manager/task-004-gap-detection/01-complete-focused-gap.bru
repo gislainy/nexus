@@ -1,0 +1,35 @@
+meta {
+  name: POST /complete (gap FOCUSED → log com type FOCUSED)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/collaborators/{{collaboratorId}}/complete
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+docs {
+  Pré-condição: inserir via psql respostas UNCERTAIN para >60% das perguntas
+  de uma dimensão específica (ex: TECHNICAL_JUSTIFICATION).
+  Sessão deve estar em SUFFICIENT.
+
+  Verificação: inspecionar os logs do serviço após o request.
+  Deve aparecer log com "gap detected" e type: "FOCUSED".
+
+  llmSuggestion será null — GenerationService é stub nesta task.
+}
+
+assert {
+  res.status: eq 200
+  res.body.sessionStatus: isDefined
+}

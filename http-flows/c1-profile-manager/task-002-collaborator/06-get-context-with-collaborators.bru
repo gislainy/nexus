@@ -1,0 +1,17 @@
+meta {
+  name: GET /context (deve ter 2 colaboradores)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{c1Url}}/projects/{{projectId}}/context
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.projectId: eq {{projectId}}
+  res.body.collaborators: isDefined
+}

@@ -1,0 +1,31 @@
+meta {
+  name: POST /complete (SUFFICIENT com delegação pendente → AWAITING_DELEGATION)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{c1Url}}/sessions/{{sessionId}}/collaborators/{{collaboratorId}}/complete
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+docs {
+  Pré-condição: executar via psql antes deste request:
+    UPDATE session SET status = 'SUFFICIENT' WHERE id = '<sessionId>';
+    INSERT INTO answer (id, session_id, question_instance_id, collaborator_id, value, confidence, epistemic_confidence, source, answered_at)
+    VALUES (gen_random_uuid(), '<sessionId>', '<questionInstanceId>', '<collaboratorId>', '', 'DELEGATED', 0.0, 'MANUAL', now());
+}
+
+assert {
+  res.status: eq 200
+  res.body.sessionStatus: eq AWAITING_DELEGATION
+}

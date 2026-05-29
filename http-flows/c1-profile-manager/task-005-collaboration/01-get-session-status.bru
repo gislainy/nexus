@@ -1,0 +1,18 @@
+meta {
+  name: GET /sessions/:sessionId/status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{c1Url}}/sessions/{{sessionId}}/status
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.sessionId: eq {{sessionId}}
+  res.body.status: isDefined
+  res.body.pendingDelegations: isDefined
+}

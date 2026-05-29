@@ -1,0 +1,18 @@
+meta {
+  name: GET /profile (após PATCH — OWNER_REVISION, 2 eventos)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{c1Url}}/projects/{{projectId}}/collaborators/{{collaboratorId}}/profile
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.profileType: eq DEVELOPER
+  res.body.confidence: eq 1
+  res.body.identificationMethod: eq OWNER_REVISION
+}
