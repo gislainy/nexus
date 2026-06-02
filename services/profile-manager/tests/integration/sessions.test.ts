@@ -66,6 +66,35 @@ async function addDelegatedAnswer(
   });
 }
 
+async function addConfidentAnswer(
+  server: FastifyInstance,
+  sessionId: string,
+  collaboratorId: string,
+  value: string,
+): Promise<string> {
+  const instance = await server.prisma.questionInstance.create({
+    data: {
+      sessionId,
+      textShown: "Is on-chain storage required?",
+      dimension: "TECHNICAL_JUSTIFICATION",
+      inputType: "BOOLEAN",
+      order: 1,
+    },
+  });
+  await server.prisma.answer.create({
+    data: {
+      sessionId,
+      questionInstanceId: instance.id,
+      collaboratorId,
+      value,
+      confidence: "CERTAIN",
+      epistemicConfidence: 0.9,
+      source: "MANUAL",
+    },
+  });
+  return instance.id;
+}
+
 describe("profile-manager sessions (integration)", () => {
   let server: FastifyInstance;
 
@@ -127,5 +156,114 @@ describe("profile-manager sessions (integration)", () => {
     });
     expect(res.statusCode).toBe(404);
     expect(res.json()).toMatchObject({ error: "Session not found" });
+  });
+
+  it("force-advance on an AWAITING_DELEGATION session returns READY_FOR_ARGUMENTATION", async () => {
+    const { sessionId } = await createSession(server, "AWAITING_DELEGATION");
+    const res = await server.inject({
+      method: "POST",
+      url: `/sessions/${sessionId}/force-advance`,
+      payload: { reason: "Owner accepts the existing gaps" },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({
+      sessionStatus: "READY_FOR_ARGUMENTATION",
+    });
+  });
+
+  it("force-advance on an IN_PROGRESS session returns 400", async () => {
+    const { sessionId } = await createSession(server, "IN_PROGRESS");
+    const res = await server.inject({
+      method: "POST",
+      url: `/sessions/${sessionId}/force-advance`,
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json()).toMatchObject({
+      error: "Session is not in AWAITING_DELEGATION status",
+    });
+  });
+
+  it("force-advance on a missing session returns 404", async () => {
+    const res = await server.inject({
+      method: "POST",
+      url: "/sessions/77777777-7777-7777-7777-777777777777/force-advance",
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toMatchObject({ error: "Session not found" });
+  });
+
+  it("status returns sessionId, status, and pendingDelegations", async () => {
+    const { sessionId, collaboratorId } = await createSession(
+      server,
+      "AWAITING_DELEGATION",
+    );
+    await addDelegatedAnswer(server, sessionId, collaboratorId);
+    const res = await server.inject({
+      method: "GET",
+      url: `/sessions/${sessionId}/status`,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({
+      sessionId,
+      status: "AWAITING_DELEGATION",
+      pendingDelegations: 1,
+    });
+  });
+
+  it("status on a missing session returns 404", async () => {
+    const res = await server.inject({
+      method: "GET",
+      url: "/sessions/77777777-7777-7777-7777-777777777777/status",
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toMatchObject({ error: "Session not found" });
+  });
+
+  it("check-conflict returns hasConflict true for a contradictory BOOLEAN answer", async () => {
+    const { sessionId, collaboratorId } = await createSession(
+      server,
+      "IN_PROGRESS",
+    );
+    const questionInstanceId = await addConfidentAnswer(
+      server,
+      sessionId,
+      collaboratorId,
+      "true",
+    );
+    const res = await server.inject({
+      method: "POST",
+      url: `/sessions/${sessionId}/answers/check-conflict`,
+      payload: {
+        questionInstanceId,
+        newAnswer: {
+          value: "false",
+          inputType: "BOOLEAN",
+          collaboratorId: "99999999-9999-9999-9999-999999999999",
+          epistemicConfidence: 0.9,
+        },
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({ hasConflict: true });
+    expect(res.json().conflictingAnswerId).toBeTruthy();
+  });
+
+  it("check-conflict returns hasConflict false when there is no prior answer", async () => {
+    const { sessionId } = await createSession(server, "IN_PROGRESS");
+    const res = await server.inject({
+      method: "POST",
+      url: `/sessions/${sessionId}/answers/check-conflict`,
+      payload: {
+        questionInstanceId: "11111111-1111-1111-1111-111111111111",
+        newAnswer: {
+          value: "true",
+          inputType: "BOOLEAN",
+          collaboratorId: "99999999-9999-9999-9999-999999999999",
+          epistemicConfidence: 0.9,
+        },
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({ hasConflict: false });
   });
 });

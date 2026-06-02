@@ -251,3 +251,9 @@ export interface GapAnalysisResult {
   gaps: DimensionGapReport[];
   llmSuggestion: LLMProfileSuggestion | null;
 }
+
+// ---------- Conflict Detection ----------
+
+// Maximum allowed distance between two normalized SCALE values before the
+// answers are treated as contradictory.
+export const SCALE_CONFLICT_THRESHOLD = 0.4;
