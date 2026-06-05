@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import type { FastifyInstance } from "fastify";
 import { buildServer } from "../../src/index.js";
-import { bearer } from "../helpers/auth.js";
+import { bearer, realAccessToken } from "../helpers/auth.js";
 
 const DOMAIN_CONFIG_ID = "00000000-0000-0000-0000-00000000aaaa";
 
@@ -88,21 +88,17 @@ describe("profile-manager projects (integration)", () => {
   });
 
   it("GET /projects returns a project created by the authenticated user as OWNER", async () => {
-    const userId = "20000000-0000-0000-0000-000000000002";
-    const email = "owner@example.com";
-
-    // The creator must exist in the user table so findByUserId can resolve the
-    // email that links them to the collaborator created at project creation.
-    await server.prisma.user.upsert({
-      where: { id: userId },
-      update: {},
-      create: { id: userId, email, name: "Owner", passwordHash: "x" },
-    });
+    // The creator is provisioned through the auth service (which owns identity),
+    // so profile-manager never touches the password column. findByUserId then
+    // resolves the email that links the user to the owner collaborator.
+    const email = "project-owner@example.com";
+    const token = await realAccessToken(email, "Owner");
+    const authHeader = { authorization: `Bearer ${token}` };
 
     const created = await server.inject({
       method: "POST",
       url: "/projects",
-      headers: bearer(userId, email),
+      headers: authHeader,
       payload: {
         name: "Owned Project",
         description: "Owned by the test user",
@@ -115,7 +111,7 @@ describe("profile-manager projects (integration)", () => {
     const res = await server.inject({
       method: "GET",
       url: "/projects",
-      headers: bearer(userId, email),
+      headers: authHeader,
     });
     expect(res.statusCode).toBe(200);
     const projects = res.json().projects as Array<{
