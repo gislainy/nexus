@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import type { FastifyInstance } from "fastify";
 import type { SessionStatus } from "@nexus/types";
 import { buildServer } from "../../src/index.js";
+import { bearer } from "../helpers/auth.js";
 
 const DOMAIN_CONFIG_ID = "00000000-0000-0000-0000-00000000aaaa";
 
@@ -12,6 +13,7 @@ async function createSession(
   const projectRes = await server.inject({
     method: "POST",
     url: "/projects",
+    headers: bearer(),
     payload: {
       name: "Session Project",
       description: "Holds a session",

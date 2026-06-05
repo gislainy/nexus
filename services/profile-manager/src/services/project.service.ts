@@ -1,10 +1,12 @@
-import type { ProjectContext } from "@nexus/types";
+import type { ProjectContext, ProjectListResponse } from "@nexus/types";
 import type { ProjectRepository } from "../repositories/project.repository.js";
 
 export interface CreateProjectPayload {
   name: string;
   description: string;
   domainConfigId?: string;
+  ownerUserId: string;
+  ownerEmail?: string;
 }
 
 export interface CreateProjectResult {
@@ -16,6 +18,7 @@ export interface CreateProjectResult {
 export interface ProjectService {
   createProject(payload: CreateProjectPayload): Promise<CreateProjectResult>;
   getProjectContext(projectId: string): Promise<ProjectContext>;
+  listProjects(userId: string): Promise<ProjectListResponse>;
 }
 
 export function createProjectService(
@@ -35,6 +38,8 @@ export function createProjectService(
         name: payload.name,
         description: payload.description,
         domainConfigId,
+        ownerUserId: payload.ownerUserId,
+        ownerEmail: payload.ownerEmail,
       });
     },
 
@@ -44,6 +49,11 @@ export function createProjectService(
         throw new Error("Project not found");
       }
       return context;
+    },
+
+    async listProjects(userId) {
+      const projects = await repository.findByUserId(userId);
+      return { projects };
     },
   };
 }

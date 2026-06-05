@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { ProjectContext } from "@nexus/types";
+import type { ProjectContext, ProjectListItem } from "@nexus/types";
 import {
   createProjectService,
   type ProjectService,
@@ -12,6 +12,7 @@ import type {
 interface FakeOptions {
   activeDomainConfigId?: string | null;
   context?: ProjectContext | null;
+  projectsByUser?: ProjectListItem[];
 }
 
 function makeService(opts: FakeOptions = {}): {
@@ -31,8 +32,14 @@ function makeService(opts: FakeOptions = {}): {
     async findContextById() {
       return opts.context ?? null;
     },
+    async findByUserId() {
+      return opts.projectsByUser ?? [];
+    },
     async findActiveDomainConfigId() {
       return opts.activeDomainConfigId ?? null;
+    },
+    async existsById() {
+      return false;
     },
   };
   return { service: createProjectService(repository), calls };
@@ -45,6 +52,7 @@ describe("ProjectService", () => {
       name: "Demo",
       description: "A demo project",
       domainConfigId: "33333333-3333-3333-3333-333333333333",
+      ownerUserId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     });
     expect(result.projectId).toBe("11111111-1111-1111-1111-111111111111");
     expect(result.sessionId).toBe("22222222-2222-2222-2222-222222222222");
@@ -58,7 +66,11 @@ describe("ProjectService", () => {
     const { service, calls } = makeService({
       activeDomainConfigId: "44444444-4444-4444-4444-444444444444",
     });
-    await service.createProject({ name: "Demo", description: "x" });
+    await service.createProject({
+      name: "Demo",
+      description: "x",
+      ownerUserId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    });
     expect(calls.create[0]?.domainConfigId).toBe(
       "44444444-4444-4444-4444-444444444444",
     );
@@ -67,7 +79,11 @@ describe("ProjectService", () => {
   it("createProject throws when no active domain configuration exists", async () => {
     const { service } = makeService({ activeDomainConfigId: null });
     await expect(
-      service.createProject({ name: "Demo", description: "x" }),
+      service.createProject({
+        name: "Demo",
+        description: "x",
+        ownerUserId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      }),
     ).rejects.toThrow("No active domain configuration found");
   });
 
@@ -88,5 +104,27 @@ describe("ProjectService", () => {
     await expect(
       service.getProjectContext("66666666-6666-6666-6666-666666666666"),
     ).rejects.toThrow("Project not found");
+  });
+
+  it("listProjects returns the user's projects wrapped in { projects }", async () => {
+    const projectsByUser: ProjectListItem[] = [
+      {
+        projectId: "77777777-7777-7777-7777-777777777777",
+        name: "Owned Project",
+        sessionStatus: "IN_PROGRESS",
+        userRole: "OWNER",
+      },
+    ];
+    const { service } = makeService({ projectsByUser });
+    await expect(
+      service.listProjects("88888888-8888-8888-8888-888888888888"),
+    ).resolves.toEqual({ projects: projectsByUser });
+  });
+
+  it("listProjects returns an empty list when the user has no projects", async () => {
+    const { service } = makeService({ projectsByUser: [] });
+    await expect(
+      service.listProjects("99999999-9999-9999-9999-999999999999"),
+    ).resolves.toEqual({ projects: [] });
   });
 });

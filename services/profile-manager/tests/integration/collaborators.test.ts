@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import type { FastifyInstance } from "fastify";
 import { buildServer } from "../../src/index.js";
+import { bearer } from "../helpers/auth.js";
 
 const DOMAIN_CONFIG_ID = "00000000-0000-0000-0000-00000000aaaa";
 
@@ -8,6 +9,7 @@ async function createProject(server: FastifyInstance): Promise<string> {
   const res = await server.inject({
     method: "POST",
     url: "/projects",
+    headers: bearer(),
     payload: {
       name: "Collaborator Project",
       description: "Holds collaborators",

@@ -122,13 +122,22 @@ importers:
       fastify-plugin:
         specifier: ^5.1.0
         version: 5.1.0
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.3
       zod:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
+      '@types/jsonwebtoken':
+        specifier: ^9.0.7
+        version: 9.0.10
       '@types/node':
         specifier: ^25.9.1
         version: 25.9.1
+      auth:
+        specifier: workspace:*
+        version: link:../auth
       prisma:
         specifier: ^6.1.0
         version: 6.19.3(typescript@5.9.3)
