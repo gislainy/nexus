@@ -15,7 +15,7 @@ export interface AuthTokens {
 }
 
 export interface AuthUser {
-  id: string
+  userId: string
   name: string
   email: string
 }
