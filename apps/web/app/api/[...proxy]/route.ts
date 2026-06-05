@@ -3,21 +3,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 const TOKEN_COOKIE = 'nexus_token'
 const REFRESH_COOKIE = 'nexus_refresh'
 
-// Maps the first path segment after /api to the internal service base URL.
-// The remaining path (with the segment kept) is forwarded unchanged, so
-// /api/auth/login -> <auth>/auth/login and /api/projects -> <profile>/projects.
-function resolveServiceBase(segment: string): string | null {
-  switch (segment) {
-    case 'auth':
-      return process.env.AUTH_SERVICE_URL ?? null
-    case 'projects':
-    case 'sessions':
-      return process.env.PROFILE_MANAGER_URL ?? null
-    case 'questions':
-      return process.env.QUESTION_ENGINE_URL ?? null
-    default:
-      return null
-  }
+// Maps the first path segment after /api to the env var holding the internal
+// service base URL. The remaining path (with the segment kept) is forwarded
+// unchanged, so /api/auth/login -> <auth>/auth/login and
+// /api/projects -> <profile>/projects.
+const SERVICE_ENV_BY_SEGMENT: Record<string, string> = {
+  auth: 'AUTH_SERVICE_URL',
+  projects: 'PROFILE_MANAGER_URL',
+  sessions: 'PROFILE_MANAGER_URL',
+  questions: 'QUESTION_ENGINE_URL',
 }
 
 // Requests that must NOT carry an Authorization header (no token exists yet).
@@ -47,11 +41,21 @@ async function handle(request: NextRequest): Promise<NextResponse> {
     return response
   }
 
-  const base = resolveServiceBase(segment)
-  if (!base) {
+  const envVar = SERVICE_ENV_BY_SEGMENT[segment]
+  if (!envVar) {
     return NextResponse.json(
       { error: `Unknown service for path ${url.pathname}` },
       { status: 404 }
+    )
+  }
+
+  const base = process.env[envVar]
+  if (!base) {
+    return NextResponse.json(
+      {
+        error: `${envVar} is not set — copy .env.local.example to .env.local and fill the service URLs`,
+      },
+      { status: 502 }
     )
   }
 
