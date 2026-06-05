@@ -150,6 +150,21 @@ export const InviteCollaboratorInput = z.object({
 });
 export type InviteCollaboratorInput = z.infer<typeof InviteCollaboratorInput>;
 
+// ---------- Project listing (GET /projects response) ----------
+
+export const ProjectListItem = z.object({
+  projectId: z.string().uuid(),
+  name: z.string(),
+  sessionStatus: SessionStatus,
+  userRole: z.enum(["OWNER", "COLLABORATOR"]),
+});
+export type ProjectListItem = z.infer<typeof ProjectListItem>;
+
+export const ProjectListResponse = z.object({
+  projects: z.array(ProjectListItem),
+});
+export type ProjectListResponse = z.infer<typeof ProjectListResponse>;
+
 // ---------- EpistemicAlignment ----------
 
 export const DIMENSION_KEYS = [
