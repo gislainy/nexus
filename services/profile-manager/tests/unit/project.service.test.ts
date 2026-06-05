@@ -52,6 +52,7 @@ describe("ProjectService", () => {
       name: "Demo",
       description: "A demo project",
       domainConfigId: "33333333-3333-3333-3333-333333333333",
+      ownerUserId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     });
     expect(result.projectId).toBe("11111111-1111-1111-1111-111111111111");
     expect(result.sessionId).toBe("22222222-2222-2222-2222-222222222222");
@@ -65,7 +66,11 @@ describe("ProjectService", () => {
     const { service, calls } = makeService({
       activeDomainConfigId: "44444444-4444-4444-4444-444444444444",
     });
-    await service.createProject({ name: "Demo", description: "x" });
+    await service.createProject({
+      name: "Demo",
+      description: "x",
+      ownerUserId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    });
     expect(calls.create[0]?.domainConfigId).toBe(
       "44444444-4444-4444-4444-444444444444",
     );
@@ -74,7 +79,11 @@ describe("ProjectService", () => {
   it("createProject throws when no active domain configuration exists", async () => {
     const { service } = makeService({ activeDomainConfigId: null });
     await expect(
-      service.createProject({ name: "Demo", description: "x" }),
+      service.createProject({
+        name: "Demo",
+        description: "x",
+        ownerUserId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      }),
     ).rejects.toThrow("No active domain configuration found");
   });
 

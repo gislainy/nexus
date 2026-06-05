@@ -5,6 +5,8 @@ export interface CreateProjectInput {
   name: string;
   description: string;
   domainConfigId: string;
+  ownerUserId: string;
+  ownerEmail?: string;
 }
 
 export interface ProjectRepository {
@@ -23,6 +25,19 @@ export function createProjectRepository(
   return {
     async create(input) {
       return prisma.$transaction(async (tx) => {
+        // The creator is registered as the project's first collaborator (owner).
+        // Identity lives in services/auth/; resolve the user record when present
+        // and fall back to the JWT email otherwise.
+        const user = await tx.user.findUnique({
+          where: { id: input.ownerUserId },
+          select: { email: true, name: true },
+        });
+        const ownerEmail = user?.email ?? input.ownerEmail;
+        if (!ownerEmail) {
+          throw new Error("Cannot resolve creator identity for project owner");
+        }
+        const ownerName = user?.name ?? ownerEmail.split("@")[0] ?? ownerEmail;
+
         const project = await tx.project.create({
           data: {
             name: input.name,
@@ -35,6 +50,21 @@ export function createProjectRepository(
           data: {
             projectId: project.id,
             status: "IN_PROGRESS",
+          },
+        });
+        const profile = await tx.profile.create({
+          data: {
+            type: "MANAGER",
+            confidence: 0.7,
+            identificationMethod: "DECLARATIVE",
+          },
+        });
+        await tx.collaborator.create({
+          data: {
+            projectId: project.id,
+            name: ownerName,
+            email: ownerEmail,
+            profileId: profile.id,
           },
         });
         return {

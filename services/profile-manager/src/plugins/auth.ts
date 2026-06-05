@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 declare module "fastify" {
   interface FastifyRequest {
     userId: string;
+    userEmail: string;
     isServiceCall: boolean;
   }
   interface FastifyInstance {
@@ -30,6 +31,7 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
   }
 
   fastify.decorateRequest("userId", "");
+  fastify.decorateRequest("userEmail", "");
   fastify.decorateRequest("isServiceCall", false);
 
   // Mode 1 — user JWT: validates `Authorization: Bearer <token>` and populates
@@ -51,6 +53,9 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
           typeof payload.sub === "string"
         ) {
           request.userId = payload.sub;
+          if (typeof payload.email === "string") {
+            request.userEmail = payload.email;
+          }
           return;
         }
         await reply.code(401).send({ error: "Unauthorized" });

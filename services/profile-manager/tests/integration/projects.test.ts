@@ -87,40 +87,30 @@ describe("profile-manager projects (integration)", () => {
     expect(Array.isArray(res.json().projects)).toBe(true);
   });
 
-  it("GET /projects returns the projects the user collaborates on", async () => {
+  it("GET /projects returns a project created by the authenticated user as OWNER", async () => {
     const userId = "20000000-0000-0000-0000-000000000002";
     const email = "owner@example.com";
 
+    // The creator must exist in the user table so findByUserId can resolve the
+    // email that links them to the collaborator created at project creation.
     await server.prisma.user.upsert({
       where: { id: userId },
       update: {},
       create: { id: userId, email, name: "Owner", passwordHash: "x" },
     });
-    const profile = await server.prisma.profile.create({
-      data: {
-        type: "ARCHITECT",
-        confidence: 0.7,
-        identificationMethod: "DECLARATIVE",
-      },
-    });
-    const project = await server.prisma.project.create({
-      data: {
+
+    const created = await server.inject({
+      method: "POST",
+      url: "/projects",
+      headers: bearer(userId, email),
+      payload: {
         name: "Owned Project",
         description: "Owned by the test user",
         domainConfigId: DOMAIN_CONFIG_ID,
       },
     });
-    await server.prisma.session.create({
-      data: { projectId: project.id, status: "IN_PROGRESS" },
-    });
-    await server.prisma.collaborator.create({
-      data: {
-        projectId: project.id,
-        name: "Owner",
-        email,
-        profileId: profile.id,
-      },
-    });
+    expect(created.statusCode).toBe(201);
+    const { projectId } = created.json();
 
     const res = await server.inject({
       method: "GET",
@@ -134,8 +124,9 @@ describe("profile-manager projects (integration)", () => {
       sessionStatus: string;
       userRole: string;
     }>;
-    const found = projects.find((p) => p.projectId === project.id);
+    const found = projects.find((p) => p.projectId === projectId);
     expect(found).toBeDefined();
+    expect(found?.name).toBe("Owned Project");
     expect(found?.userRole).toBe("OWNER");
     expect(found?.sessionStatus).toBe("IN_PROGRESS");
   });
@@ -169,7 +160,9 @@ describe("profile-manager projects (integration)", () => {
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body.projectId).toBe(projectId);
-    expect(body.collaborators).toEqual([]);
+    // The creator is registered as the project's first collaborator (owner).
+    expect(body.collaborators).toHaveLength(1);
+    expect(body.collaborators[0].profileType).toBe("MANAGER");
   });
 
   it("GET /projects/:projectId/context returns 404 for a missing project", async () => {

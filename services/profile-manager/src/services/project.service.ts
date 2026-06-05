@@ -5,6 +5,8 @@ export interface CreateProjectPayload {
   name: string;
   description: string;
   domainConfigId?: string;
+  ownerUserId: string;
+  ownerEmail?: string;
 }
 
 export interface CreateProjectResult {
@@ -36,6 +38,8 @@ export function createProjectService(
         name: payload.name,
         description: payload.description,
         domainConfigId,
+        ownerUserId: payload.ownerUserId,
+        ownerEmail: payload.ownerEmail,
       });
     },
 

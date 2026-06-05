@@ -22,7 +22,11 @@ export const projectRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.code(400).send({ error: parsed.error.message });
       }
       try {
-        const result = await service.createProject(parsed.data);
+        const result = await service.createProject({
+          ...parsed.data,
+          ownerUserId: request.userId,
+          ownerEmail: request.userEmail || undefined,
+        });
         return reply.code(201).send({
           projectId: result.projectId,
           sessionId: result.sessionId,
