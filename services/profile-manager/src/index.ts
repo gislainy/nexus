@@ -4,6 +4,7 @@ import authPlugin from "./plugins/auth.js";
 import { healthRoutes } from "./routes/health.js";
 import { projectRoutes } from "./routes/projects.js";
 import { collaboratorsRoutes } from "./routes/collaborators.js";
+import { invitesRoutes } from "./routes/invites.js";
 import { sessionsRoutes } from "./routes/sessions.js";
 
 export async function buildServer(
@@ -18,6 +19,7 @@ export async function buildServer(
     await fastify.register(authPlugin);
     await fastify.register(projectRoutes);
     await fastify.register(collaboratorsRoutes);
+    await fastify.register(invitesRoutes);
     await fastify.register(sessionsRoutes);
   }
 
