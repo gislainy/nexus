@@ -9,6 +9,8 @@ __pycache__/
 dist/
 build/
 .turbo/
+.next/
+next-env.d.ts
 
 # Environment files
 .env
