@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { ProjectContext } from "@nexus/types";
+import type { ProjectContext, ProjectListItem } from "@nexus/types";
 import {
   createProjectService,
   type ProjectService,
@@ -12,6 +12,7 @@ import type {
 interface FakeOptions {
   activeDomainConfigId?: string | null;
   context?: ProjectContext | null;
+  projectsByUser?: ProjectListItem[];
 }
 
 function makeService(opts: FakeOptions = {}): {
@@ -31,8 +32,14 @@ function makeService(opts: FakeOptions = {}): {
     async findContextById() {
       return opts.context ?? null;
     },
+    async findByUserId() {
+      return opts.projectsByUser ?? [];
+    },
     async findActiveDomainConfigId() {
       return opts.activeDomainConfigId ?? null;
+    },
+    async existsById() {
+      return false;
     },
   };
   return { service: createProjectService(repository), calls };
@@ -88,5 +95,27 @@ describe("ProjectService", () => {
     await expect(
       service.getProjectContext("66666666-6666-6666-6666-666666666666"),
     ).rejects.toThrow("Project not found");
+  });
+
+  it("listProjects returns the user's projects wrapped in { projects }", async () => {
+    const projectsByUser: ProjectListItem[] = [
+      {
+        projectId: "77777777-7777-7777-7777-777777777777",
+        name: "Owned Project",
+        sessionStatus: "IN_PROGRESS",
+        userRole: "OWNER",
+      },
+    ];
+    const { service } = makeService({ projectsByUser });
+    await expect(
+      service.listProjects("88888888-8888-8888-8888-888888888888"),
+    ).resolves.toEqual({ projects: projectsByUser });
+  });
+
+  it("listProjects returns an empty list when the user has no projects", async () => {
+    const { service } = makeService({ projectsByUser: [] });
+    await expect(
+      service.listProjects("99999999-9999-9999-9999-999999999999"),
+    ).resolves.toEqual({ projects: [] });
   });
 });
