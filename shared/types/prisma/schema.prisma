@@ -135,6 +135,8 @@ model User {
   createdAt    DateTime       @default(now()) @map("created_at")
   updatedAt    DateTime       @updatedAt @map("updated_at")
   refreshTokens RefreshToken[]
+  collaborators Collaborator[]
+  invitesSent   CollaboratorInvite[]
 
   @@map("user")
 }
@@ -163,8 +165,9 @@ model Project {
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
-  domainConfig   DomainConfig    @relation(fields: [domainConfigId], references: [id])
+  domainConfig   DomainConfig         @relation(fields: [domainConfigId], references: [id])
   collaborators  Collaborator[]
+  invites        CollaboratorInvite[]
   sessions       Session[]
   gitConnections GitConnection[]
   artifacts      Artifact[]
@@ -175,16 +178,36 @@ model Project {
 model Collaborator {
   id        String   @id @default(uuid())
   projectId String   @map("project_id")
+  userId    String?  @map("user_id")
   name      String
   email     String
   profileId String   @map("profile_id")
   joinedAt  DateTime @default(now()) @map("joined_at")
 
   project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id])
   profile Profile  @relation(fields: [profileId], references: [id])
   answers Answer[]
 
   @@map("collaborator")
+}
+
+model CollaboratorInvite {
+  id               String    @id @default(uuid())
+  projectId        String    @map("project_id")
+  invitedBy        String    @map("invited_by")
+  inviteeEmail     String    @map("invitee_email")
+  suggestedProfile String    @map("suggested_profile")
+  token            String    @unique
+  status           String    @default("PENDING")
+  expiresAt        DateTime  @map("expires_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  acceptedAt       DateTime? @map("accepted_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  inviter User    @relation(fields: [invitedBy], references: [id])
+
+  @@map("collaborator_invite")
 }
 
 model Profile {
