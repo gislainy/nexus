@@ -66,3 +66,5 @@ jobs:
         run: pnpm --filter profile-manager test:integration
         env:
           DATABASE_URL: postgresql://nexus:nexus_test@localhost:5432/nexus_test
+          JWT_SECRET: test-secret
+          SERVICE_API_KEY: test-service-key
