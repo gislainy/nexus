@@ -24,19 +24,30 @@ export default function NewProjectPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [entryMode, setEntryMode] = useState<EntryMode>('NEW_SYSTEM')
-  const [error, setError] = useState<string | null>(null)
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [descriptionError, setDescriptionError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
+    setFormError(null)
 
-    if (name.trim().length < 3) {
-      setError('O nome do projeto deve ter no mínimo 3 caracteres.')
-      return
-    }
-    if (description.trim().length < 10) {
-      setError('A descrição deve ter no mínimo 10 caracteres.')
+    // Validate every field up front so each invalid field shows its own message,
+    // even when the form is submitted completely empty.
+    const nextNameError =
+      name.trim().length < 3
+        ? 'O nome do projeto deve ter no mínimo 3 caracteres.'
+        : null
+    const nextDescriptionError =
+      description.trim().length < 10
+        ? 'A descrição deve ter no mínimo 10 caracteres.'
+        : null
+
+    setNameError(nextNameError)
+    setDescriptionError(nextDescriptionError)
+
+    if (nextNameError || nextDescriptionError) {
       return
     }
 
@@ -50,7 +61,7 @@ export default function NewProjectPage() {
       router.push(`/projects/${projectId}`)
       router.refresh()
     } catch {
-      setError('Não foi possível criar o projeto. Tente novamente.')
+      setFormError('Não foi possível criar o projeto. Tente novamente.')
       setSubmitting(false)
     }
   }
@@ -80,8 +91,14 @@ export default function NewProjectPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                required
+                aria-invalid={nameError ? true : undefined}
+                aria-describedby={nameError ? 'name-error' : undefined}
               />
+              {nameError && (
+                <p id="name-error" className="text-sm text-destructive">
+                  {nameError}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -91,8 +108,16 @@ export default function NewProjectPage() {
                 rows={5}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                required
+                aria-invalid={descriptionError ? true : undefined}
+                aria-describedby={
+                  descriptionError ? 'description-error' : undefined
+                }
               />
+              {descriptionError && (
+                <p id="description-error" className="text-sm text-destructive">
+                  {descriptionError}
+                </p>
+              )}
             </div>
 
             <fieldset className="space-y-2">
@@ -121,7 +146,9 @@ export default function NewProjectPage() {
               </label>
             </fieldset>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {formError && (
+              <p className="text-sm text-destructive">{formError}</p>
+            )}
           </CardContent>
           <CardFooter>
             <Button type="submit" className="w-full" disabled={submitting}>
