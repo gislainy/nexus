@@ -1,10 +1,11 @@
 import type { PrismaClient } from "@prisma/client";
-import type { ProjectContext, ProjectListItem } from "@nexus/types";
+import type { EntryMode, ProjectContext, ProjectListItem } from "@nexus/types";
 
 export interface CreateProjectInput {
   name: string;
   description: string;
   domainConfigId: string;
+  entryMode?: EntryMode;
   ownerUserId: string;
   ownerEmail?: string;
 }
@@ -44,6 +45,7 @@ export function createProjectRepository(
             description: input.description,
             domainConfigId: input.domainConfigId,
             status: "ACTIVE",
+            entryMode: input.entryMode ?? "NEW_SYSTEM",
           },
         });
         const session = await tx.session.create({

@@ -162,6 +162,7 @@ model Project {
   description    String
   domainConfigId String        @map("domain_config_id")
   status         ProjectStatus @default(ACTIVE)
+  entryMode      EntryMode     @default(NEW_SYSTEM) @map("entry_mode")
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
@@ -510,6 +511,11 @@ enum ProjectStatus {
   ACTIVE
   COMPLETED
   ARCHIVED
+}
+
+enum EntryMode {
+  EXISTING_SYSTEM
+  NEW_SYSTEM
 }
 
 enum ProfileType {

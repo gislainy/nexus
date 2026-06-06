@@ -1,10 +1,11 @@
-import type { ProjectContext, ProjectListResponse } from "@nexus/types";
+import type { EntryMode, ProjectContext, ProjectListResponse } from "@nexus/types";
 import type { ProjectRepository } from "../repositories/project.repository.js";
 
 export interface CreateProjectPayload {
   name: string;
   description: string;
   domainConfigId?: string;
+  entryMode?: EntryMode;
   ownerUserId: string;
   ownerEmail?: string;
 }
@@ -38,6 +39,7 @@ export function createProjectService(
         name: payload.name,
         description: payload.description,
         domainConfigId,
+        entryMode: payload.entryMode,
         ownerUserId: payload.ownerUserId,
         ownerEmail: payload.ownerEmail,
       });
