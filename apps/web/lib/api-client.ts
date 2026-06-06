@@ -1,7 +1,10 @@
 import type {
   AuthTokens,
   AuthUser,
+  CreateProjectInput,
+  CreateProjectResponse,
   LoginInput,
+  ProjectListResponse,
   RegisterInput,
 } from '@/lib/types'
 
@@ -58,6 +61,13 @@ const authClient = {
   me: () => get<AuthUser>('/api/auth/me'),
 }
 
+const projectsClient = {
+  list: () => get<ProjectListResponse>('/api/projects'),
+  create: (input: CreateProjectInput) =>
+    post<CreateProjectResponse>('/api/projects', input),
+}
+
 export const apiClient = {
   auth: authClient,
+  projects: projectsClient,
 }
