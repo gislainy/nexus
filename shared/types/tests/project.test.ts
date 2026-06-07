@@ -18,6 +18,7 @@ describe("Project / Collaborator / Profile / Session", () => {
       description: "",
       domainConfigId: UUID2,
       status: "ACTIVE",
+      entryMode: "NEW_SYSTEM",
       createdAt: new Date(),
       updatedAt: new Date(),
     });
