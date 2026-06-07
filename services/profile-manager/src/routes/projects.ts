@@ -7,6 +7,7 @@ const CreateProjectBody = z.object({
   name: z.string().min(1),
   description: z.string(),
   domainConfigId: z.string().uuid().optional(),
+  entryMode: z.enum(["EXISTING_SYSTEM", "NEW_SYSTEM"]).optional(),
 });
 
 export const projectRoutes: FastifyPluginAsync = async (fastify) => {

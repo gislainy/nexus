@@ -34,6 +34,9 @@ export type SessionStatus = z.infer<typeof SessionStatus>;
 export const Locale = z.enum(["pt", "en"]);
 export type Locale = z.infer<typeof Locale>;
 
+export const EntryMode = z.enum(["EXISTING_SYSTEM", "NEW_SYSTEM"]);
+export type EntryMode = z.infer<typeof EntryMode>;
+
 // ---------- Project ----------
 
 export const Project = z.object({
@@ -42,6 +45,7 @@ export const Project = z.object({
   description: z.string(),
   domainConfigId: z.string().uuid(),
   status: ProjectStatus,
+  entryMode: EntryMode,
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -149,6 +153,15 @@ export const InviteCollaboratorInput = z.object({
   suggestedProfile: ProfileType,
 });
 export type InviteCollaboratorInput = z.infer<typeof InviteCollaboratorInput>;
+
+// ---------- CreateProjectInput (POST /projects body) ----------
+
+export const CreateProjectInput = z.object({
+  name: z.string().min(3),
+  description: z.string().min(10),
+  entryMode: EntryMode,
+});
+export type CreateProjectInput = z.infer<typeof CreateProjectInput>;
 
 // ---------- Project listing (GET /projects response) ----------
 
